@@ -1,4 +1,5 @@
-# Youtube-to-Mp3
+#Sound Sift the (The Youtube / Spotify) MP3 Converter for Linux Mint 22 and 22.1
+
 The computer based app for Linux called Sound Sift. Download Spotify / YT to mp3 music. 
 
 You must add eternity ready api keys. The file to add API keys is located on Git Hub @ /components/drivers/Spotiffy.py
