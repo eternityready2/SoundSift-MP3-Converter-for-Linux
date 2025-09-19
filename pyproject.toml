@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soundsift"
+dynamic = ["version"]
+
+authors = [
+  { name="sivefunc", email="sivefunc@tuta.io" },
+]
+
+description = "Soundsift GUI YT/Spotify downloader"
+readme = {file = 'README.md', content-type='text/markdown', charset="UTF-8", variant="GFM"}
+requires-python = ">=3.11"
+
+dependencies = [
+  "customtkinter>=5.2.2",
+  "openpyxl>=3.1.5",
+  "requests>=2.32.3",
+  "spotify_dl>=8.9.0",
+  "spotipy>=2.25.1",
+  "yt_dlp>=2025.2.19"
+]
+
+[project.optional-dependencies]
+dev = [
+]
+
+keywords = ['linux', 'python3', 'youtube', 'spotify']
+
+[tool.setuptools.dynamic]
+version = {attr = "soundsift._version.__version__"}
+
+[project.urls]
+Homepage = "https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux"
+
+[project.scripts]
+soundsift = "soundsift.main:main"
