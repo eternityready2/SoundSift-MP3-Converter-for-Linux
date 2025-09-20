@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from soundsift.components.app import download_songs as dwl
-from soundsift.config import CREDENTIALS
+from soundsift.config import CREDENTIALS, CONFIG_PATH
 
 
 class DataStorage:
@@ -238,7 +238,8 @@ class App(ctk.CTk):
             self.spotify_tree.insert("", "end", values=(cid, secret))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
-
+            CREDENTIALS['spotify'].append([cid, secret])
+            
     def update_spotify_row(self):
         selected = self.spotify_tree.selection()
         cid = self.spotify_id_entry.get()
@@ -280,6 +281,14 @@ class App(ctk.CTk):
 
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            with open(CONFIG_PATH / 'spotify-credentials.csv', 'w') as file:
+                for credential in CREDENTIALS['spotify']:
+                    file.write(','.join(credential) + '\n')
+
+            with open(CONFIG_PATH / 'youtube-credentials.csv', 'w') as file:
+                for credential in CREDENTIALS['youtube']:
+                    file.write(','.join(credential) + '\n')
+
             self.destroy()
 
 def main():
