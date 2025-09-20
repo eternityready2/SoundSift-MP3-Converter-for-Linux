@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import ttk
 from soundsift.components.app import download_songs as dwl
+from soundsift.config import CREDENTIALS
 
 
 class DataStorage:
@@ -176,6 +177,16 @@ class App(ctk.CTk):
         # Main Tree coloring
         self.tree.tag_configure("evenrow", background="#f2f2f2")
         self.tree.tag_configure("oddrow", background="#ffffff")
+        
+        for (cid, secret) in CREDENTIALS['spotify']:
+            self.spotify_tree.insert("", "end", values=(cid, secret))
+            self.spotify_id_entry.delete(0, "end")
+            self.spotify_secret_entry.delete(0, "end")
+            
+        for (api_key) in CREDENTIALS['youtube']:
+            self.youtube_tree.insert("", "end", values=(api_key,))
+            self.youtube_key_entry.delete(0, "end")
+
 
     # ================= Main Methods =================
     def add_row(self):
