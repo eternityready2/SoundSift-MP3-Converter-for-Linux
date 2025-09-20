@@ -15,12 +15,14 @@ class SpotifyDownloader:
     YOUTUBE_API_KEY = ''  # Add your YouTube Data API key here. Create an account and access: https://console.cloud.google.com/apis/library/youtube.googleapis.com?inv=1&invt=Ab51TQ&project=my-project-5585-1751544391774
 
     @classmethod
-    def authenticate_spotify(cls):
+    def authenticate_spotify(cls, client_id, client_secret):
         client_credentials_manager = SpotifyClientCredentials(
-            client_id=cls.SPOTIPY_CLIENT_ID,
-            client_secret=cls.SPOTIPY_CLIENT_SECRET
+            client_id=client_id,
+            client_secret=client_secret
         )
-        sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+        sp = spotipy.Spotify(
+            client_credentials_manager=client_credentials_manager
+        )
         return sp
 
     @classmethod
@@ -58,8 +60,8 @@ class SpotifyDownloader:
             raise ValueError("Invalid Spotify playlist URL. Could not extract playlist ID.")
 
     @classmethod
-    def get_youtube_url(cls, search_query):
-        search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={search_query}&key={cls.YOUTUBE_API_KEY}&type=video"
+    def get_youtube_url(cls, search_query, youtube_api_key):
+        search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={search_query}&key={youtube_api_key}&type=video"
         response = requests.get(search_url)
         if response.status_code == 200:
             results = response.json().get('items', [])
@@ -68,9 +70,15 @@ class SpotifyDownloader:
         return None
 
     @classmethod
-    def download_spotify_tracks(cls, playlist_url, output_path="downloads"):
+    def download_spotify_tracks(cls,
+                                playlist_url,
+                                client_id,
+                                client_secret,
+                                youtube_api_key,
+                                output_path="downloads",
+                                ):
         # Set up logging
-        sp = cls.authenticate_spotify()
+        sp = cls.authenticate_spotify(client_id, client_secret)
         logger = logging.getLogger('spotify_dl')
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
@@ -106,7 +114,7 @@ class SpotifyDownloader:
             # Fetch YouTube URLs for each track
             for track in tracks:
                 track_search_query = f"{track['name']} {track['artist']}"
-                track['track_url'] = cls.get_youtube_url(track_search_query)
+                track['track_url'] = cls.get_youtube_url(track_search_query, youtube_api_key)
 
         except Exception as e:
             print(f"An error occurred in fetching tracks: {e}")

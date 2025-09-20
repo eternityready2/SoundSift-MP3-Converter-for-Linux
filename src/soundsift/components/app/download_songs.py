@@ -4,6 +4,8 @@ from soundsift.components.services.ConfigHandler import Config as CFG
 from soundsift.components.drivers.Excel import Excel as xls
 from soundsift.components.drivers.YouTube import Ytube
 from soundsift.components.drivers.Spotiffy import SpotifyDownloader
+from soundsift.config import CREDENTIALS
+
 
 class appl:
     lso_instance = []
@@ -103,7 +105,13 @@ class appl:
 
         elif bool(re.search('spotify', str(url))):
             try:
-                SpotifyDownloader.download_spotify_tracks(url,CFG.get_Download_Path())
+                SpotifyDownloader.download_spotify_tracks(
+                    url,
+                    CREDENTIALS['spotify'][0][0],
+                    CREDENTIALS['spotify'][0][1],
+                    CREDENTIALS['youtube'][0][0],
+                    CFG.get_Download_Path(),
+                )
                 return 'Success'
             except Exception as e:
                 print(f"An error occurred: {e}")
@@ -111,8 +119,3 @@ class appl:
         else:
             print ('Error: Unknown source of download - '+str(url))
             return 'Incorrect Link'
-
-
-
-
-
