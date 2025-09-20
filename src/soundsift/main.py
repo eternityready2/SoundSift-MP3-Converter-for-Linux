@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from soundsift.components.app import download_songs as dwl
 from soundsift.config import CREDENTIALS
 
@@ -24,6 +24,7 @@ class DataStorage:
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.title("Sound Sift - Easy MP3s")
 
         self.storage = DataStorage()
@@ -262,6 +263,7 @@ class App(ctk.CTk):
         if api_key:
             self.youtube_tree.insert("", "end", values=(api_key,))
             self.youtube_key_entry.delete(0, "end")
+            CREDENTIALS['youtube'].append(api_key)
 
     def update_youtube_row(self):
         selected = self.youtube_tree.selection()
@@ -276,6 +278,9 @@ class App(ctk.CTk):
         for item in selected:
             self.youtube_tree.delete(item)
 
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.destroy()
 
 def main():
     ctk.set_appearance_mode("System")
