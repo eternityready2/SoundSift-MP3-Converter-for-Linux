@@ -105,11 +105,14 @@ class appl:
 
         elif bool(re.search('spotify', str(url))):
             try:
+                if not CREDENTIALS['spotify']:
+                    raise Exception("There are no spotify credentials add one")
+
+                if not CREDENTIALS['youtube']:
+                    raise Exception("There are no youtube credentials add one")
+
                 SpotifyDownloader.download_spotify_tracks(
                     url,
-                    CREDENTIALS['spotify'][0][0],
-                    CREDENTIALS['spotify'][0][1],
-                    CREDENTIALS['youtube'][0][0],
                     CFG.get_Download_Path(),
                 )
                 return 'Success'

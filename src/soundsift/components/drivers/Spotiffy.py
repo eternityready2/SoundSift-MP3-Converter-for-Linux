@@ -7,6 +7,7 @@ from spotify_dl.youtube import download_songs
 from spotipy.oauth2 import SpotifyClientCredentials
 from soundsift.components.services.ConfigHandler import Config as CFG
 from soundsift.components.drivers.YouTube import Ytube
+from soundsift.config import CREDENTIALS
 
 class SpotifyDownloader:
     SPOTIPY_CLIENT_ID = '' # Update your Spotify client ID
@@ -72,13 +73,9 @@ class SpotifyDownloader:
     @classmethod
     def download_spotify_tracks(cls,
                                 playlist_url,
-                                client_id,
-                                client_secret,
-                                youtube_api_key,
                                 output_path="downloads",
                                 ):
         # Set up logging
-        sp = cls.authenticate_spotify(client_id, client_secret)
         logger = logging.getLogger('spotify_dl')
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
@@ -103,25 +100,43 @@ class SpotifyDownloader:
 
 
         # Fetch tracks from the playlist
-        try:
-            print("Fetching tracks from Spotify playlist...")
-            tracks = fetch_tracks(sp, str(spotify_link_type), item_id)
+        tracks = []
+        for (client_id, client_secret, *_) in CREDENTIALS['spotify']:
+            try:
+                print("Fetching tracks from Spotify playlist...")
+                print(f"CLIENT_ID = {client_id}")
+                print(f"CLIENT_SECRET = {client_secret}")
 
-            if not tracks:
-                print("No tracks found in the playlist. Please check the URL or playlist privacy settings.")
+                sp = cls.authenticate_spotify(client_id, client_secret)
+                tracks = fetch_tracks(sp, str(spotify_link_type), item_id)
+
+                if not tracks:
+                    print("No tracks found in the playlist. Please check the URL or playlist privacy settings.")
+                    return
+
+                # Fetch YouTube URLs for each track
+                for track in tracks:
+                    for (youtube_api_key, *_) in CREDENTIALS['youtube']:
+                        track_search_query = f"{track['name']} {track['artist']}"
+                        track['track_url'] = cls.get_youtube_url(track_search_query, youtube_api_key)
+                        if track['track_url'] is not None:
+                            break
+
+                        print(f"{youtube_api_key} failed, trying another of the pool...")
+                break
+
+            except Exception as e:
+                print(f"An error occurred in fetching tracks: {e}")
                 return
 
-            # Fetch YouTube URLs for each track
-            for track in tracks:
-                track_search_query = f"{track['name']} {track['artist']}"
-                track['track_url'] = cls.get_youtube_url(track_search_query, youtube_api_key)
-
-        except Exception as e:
-            print(f"An error occurred in fetching tracks: {e}")
+        if not tracks:
             return
 
         # print youtube urls for each track
         for track in tracks:
+            if track['track_url'] is None:
+                continue
+
             print(f"Processing: {track['name']} - {track['artist']}")
             #print(f"{track['name']} - {track['artist']}: {track['track_url']}")
             Ytube.download_audio_yt_dlp(track['track_url'])
