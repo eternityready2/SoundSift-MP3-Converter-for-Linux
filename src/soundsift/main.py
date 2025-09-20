@@ -249,6 +249,10 @@ class App(ctk.CTk):
                 current = self.spotify_tree.item(item, "values")
                 new_cid = cid if cid else current[0]
                 new_secret = secret if secret else current[1]
+
+                idx = self.spotify_tree.index(item)
+                CREDENTIALS['spotify'][idx] = [new_cid, new_secret]
+
                 self.spotify_tree.item(item, values=(new_cid, new_secret))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
@@ -277,6 +281,8 @@ class App(ctk.CTk):
         key = self.youtube_key_entry.get()
         if selected and key:
             for item in selected:
+                idx = self.youtube_tree.index(item)
+                CREDENTIALS['youtube'][idx] = [key]
                 self.youtube_tree.item(item, values=(key,))
             self.youtube_key_entry.delete(0, "end")
 
