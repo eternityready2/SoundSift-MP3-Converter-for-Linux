@@ -1,8 +1,8 @@
+import threading
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from soundsift.components.app import download_songs as dwl
 from soundsift.config import CREDENTIALS, CONFIG_PATH
-
 
 class DataStorage:
     def __init__(self):
@@ -215,17 +215,26 @@ class App(ctk.CTk):
             self.link_entry.delete(0, "end")
 
     def confirm_row(self):
-        all_items = self.tree.get_children()
-        for item in all_items:
-            current_values = self.tree.item(item, "values")
-            status, link = current_values
-            self.tree.item(item, values=("PROCESSING", link))
-            index = self.tree.index(item)
-            self.storage.update_data(index, status="PROCESSING")
-            status = dwl.appl.download_music_direct(link)
-            self.tree.item(item, values=(status, link))
-            index = self.tree.index(item)
-            self.storage.update_data(index, status=status)
+        def process_all_links():
+            all_items = self.tree.get_children()
+            for item in all_items:
+                current_values = self.tree.item(item, "values")
+                status, link = current_values
+
+                # Update TreeView for status = "PROCESSING" safely from main thread
+                self.after(0, lambda i=item, l=link: self.tree.item(i, values=("PROCESSING", l)))
+                index = self.tree.index(item)
+                self.storage.update_data(index, status="PROCESSING")
+
+                # Time-consuming processing
+                status_result = dwl.appl.download_music_direct(link)
+
+                # Update TreeView with final status safely from main thread
+                self.after(0, lambda i=item, s=status_result, l=link: self.tree.item(i, values=(s, l)))
+                self.storage.update_data(index, status=status_result)
+
+        # Start single thread for all processing
+        threading.Thread(target=process_all_links, daemon=True).start()
 
     def update_row(self):
         selected_item = self.tree.selection()
