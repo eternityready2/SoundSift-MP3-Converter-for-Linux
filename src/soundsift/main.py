@@ -20,7 +20,6 @@ class DataStorage:
             current_status, current_link = self.data[index]
             self.data[index] = (status or current_status, link or current_link)
 
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -84,7 +83,7 @@ class App(ctk.CTk):
         self.delete_button = ctk.CTkButton(self.controls_frame, text="Delete Row", command=self.delete_row)
         self.delete_button.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
 
-        # ================= API FRAME (SPLIT INTO TWO SUBFRAMES) =================
+        # ================= API FRAME =================
         self.api_frame = ctk.CTkFrame(self)
         self.api_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=10, pady=10)
         self.api_frame.grid_columnconfigure(0, weight=1)
@@ -120,11 +119,21 @@ class App(ctk.CTk):
         spotify_tree_frame.grid_rowconfigure(0, weight=1)
         spotify_tree_frame.grid_columnconfigure(0, weight=1)
 
-        self.spotify_id_entry = ctk.CTkEntry(self.spotify_frame, placeholder_text="CLIENT_ID")
-        self.spotify_id_entry.pack(fill="x", padx=5, pady=(5, 2))
+        # Spotify input frame with grid layout for labels and entries
+        self.spotify_input_frame = ctk.CTkFrame(self.spotify_frame)
+        self.spotify_input_frame.pack(fill="x", padx=5, pady=(5, 10))
 
-        self.spotify_secret_entry = ctk.CTkEntry(self.spotify_frame, placeholder_text="CLIENT_SECRET")
-        self.spotify_secret_entry.pack(fill="x", padx=5, pady=(2, 5))
+        self.spotify_id_label = ctk.CTkLabel(self.spotify_input_frame, text="CLIENT_ID:")
+        self.spotify_id_label.grid(row=0, column=0, sticky="w", padx=(0, 5), pady=(0, 2))
+        self.spotify_id_entry = ctk.CTkEntry(self.spotify_input_frame, placeholder_text="CLIENT_ID")
+        self.spotify_id_entry.grid(row=0, column=1, sticky="ew", pady=(0, 2))
+
+        self.spotify_secret_label = ctk.CTkLabel(self.spotify_input_frame, text="CLIENT_SECRET:")
+        self.spotify_secret_label.grid(row=1, column=0, sticky="w", padx=(0, 5), pady=(0, 2))
+        self.spotify_secret_entry = ctk.CTkEntry(self.spotify_input_frame, placeholder_text="CLIENT_SECRET")
+        self.spotify_secret_entry.grid(row=1, column=1, sticky="ew", pady=(0, 2))
+
+        self.spotify_input_frame.grid_columnconfigure(1, weight=1)
 
         self.spotify_add_button = ctk.CTkButton(self.spotify_frame, text="Add Row", command=self.add_spotify_row)
         self.spotify_add_button.pack(fill="x", padx=5, pady=2)
@@ -163,8 +172,16 @@ class App(ctk.CTk):
         youtube_tree_frame.grid_rowconfigure(0, weight=1)
         youtube_tree_frame.grid_columnconfigure(0, weight=1)
 
-        self.youtube_key_entry = ctk.CTkEntry(self.youtube_frame, placeholder_text="API_KEY")
-        self.youtube_key_entry.pack(fill="x", padx=5, pady=(5, 5))
+        # YouTube input frame with grid layout for label and entry
+        self.youtube_input_frame = ctk.CTkFrame(self.youtube_frame)
+        self.youtube_input_frame.pack(fill="x", padx=5, pady=(5, 10))
+
+        self.youtube_key_label = ctk.CTkLabel(self.youtube_input_frame, text="API_KEY:")
+        self.youtube_key_label.grid(row=0, column=0, sticky="w", padx=(0, 5), pady=(0, 2))
+        self.youtube_key_entry = ctk.CTkEntry(self.youtube_input_frame, placeholder_text="API_KEY")
+        self.youtube_key_entry.grid(row=0, column=1, sticky="ew", pady=(0, 2))
+
+        self.youtube_input_frame.grid_columnconfigure(1, weight=1)
 
         self.youtube_add_button = ctk.CTkButton(self.youtube_frame, text="Add Row", command=self.add_youtube_row)
         self.youtube_add_button.pack(fill="x", padx=5, pady=2)
@@ -178,16 +195,15 @@ class App(ctk.CTk):
         # Main Tree coloring
         self.tree.tag_configure("evenrow", background="#f2f2f2")
         self.tree.tag_configure("oddrow", background="#ffffff")
-        
+
         for (cid, secret) in CREDENTIALS['spotify']:
             self.spotify_tree.insert("", "end", values=(cid, secret))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
-            
-        for (api_key) in CREDENTIALS['youtube']:
+
+        for api_key in CREDENTIALS['youtube']:
             self.youtube_tree.insert("", "end", values=(api_key,))
             self.youtube_key_entry.delete(0, "end")
-
 
     # ================= Main Methods =================
     def add_row(self):
@@ -239,7 +255,7 @@ class App(ctk.CTk):
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
             CREDENTIALS['spotify'].append([cid, secret])
-            
+
     def update_spotify_row(self):
         selected = self.spotify_tree.selection()
         cid = self.spotify_id_entry.get()
@@ -265,7 +281,6 @@ class App(ctk.CTk):
                 idx,
                 len(CREDENTIALS['spotify']) - 1
             ))
-
             self.spotify_tree.delete(item)
 
     # --- YouTube Methods ---
