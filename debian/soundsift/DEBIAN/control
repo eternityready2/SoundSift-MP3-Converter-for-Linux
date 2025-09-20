@@ -1,0 +1,10 @@
+Package: soundsift
+Version: 1.0.14
+Architecture: amd64
+Maintainer: sivefunc <sivefunc@tuta.io>
+Installed-Size: 154
+Depends: python3-openpyxl, python3-requests, python3-spotipy, python3:any, yt-dlp, python3, python3-tk, python3-packaging
+Section: python
+Priority: optional
+Homepage: https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux
+Description: The computer based app for Linux called Sound Sift. Download Spotify / YT to mp3 music.
