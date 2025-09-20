@@ -256,6 +256,12 @@ class App(ctk.CTk):
     def delete_spotify_row(self):
         selected = self.spotify_tree.selection()
         for item in selected:
+            idx = self.spotify_tree.index(item)
+            CREDENTIALS['spotify'].pop(min(
+                idx,
+                len(CREDENTIALS['spotify']) - 1
+            ))
+
             self.spotify_tree.delete(item)
 
     # --- YouTube Methods ---
@@ -277,6 +283,11 @@ class App(ctk.CTk):
     def delete_youtube_row(self):
         selected = self.youtube_tree.selection()
         for item in selected:
+            idx = self.youtube_tree.index(item)
+            CREDENTIALS['youtube'].pop(min(
+                idx,
+                len(CREDENTIALS['youtube']) - 1
+            ))
             self.youtube_tree.delete(item)
 
     def on_closing(self):
