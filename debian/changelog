@@ -1,5 +1,7 @@
-soundsift (1.0.14) stable; urgency=low
+soundsift (1.0.16) stable; urgency=low
 
-  * Initial release
+  * soundsift.desktop
+  * icon png
+  * credential path fixed
 
- -- sivefunc <sivefunc@tuta.io>  Sun, 20 Sep 2025 17:36:55 +0200
+ -- sivefunc <sivefunc@tuta.io>  Sun, 20 Sep 2025 20:12:00 +0200
