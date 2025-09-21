@@ -120,9 +120,11 @@ class SpotifyDownloader:
                         track_search_query = f"{track['name']} {track['artist']}"
                         track['track_url'] = cls.get_youtube_url(track_search_query, youtube_api_key)
                         if track['track_url'] is not None:
+                            CREDENTIALS['youtube'][yt_idx][1] = "success"
                             break
-                        CREDENTIALS['youtube'][yt_idx][2] = "failed"
+                        CREDENTIALS['youtube'][yt_idx][1] = "failed"
                         print(f"{youtube_api_key} failed, trying another of the pool...")
+                CREDENTIALS['spotify'][sp_idx][2] = "success"
                 break
 
             except Exception as e:
