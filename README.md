@@ -1,18 +1,44 @@
-##Sound Sift (The Youtube / Spotify) MP3 Converter for Linux Mint 22 and 22.1
+# :cd: soundsift
+<div align="center">
+    <img align="center"
+        src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/debian/usr/share/icons/hicolor/256x256/soundsift.png"
+        style="width: 100%; max-width: 600px"
+        alt="Drawing of a media player">
+    <br>
+</div>
 
-The computer based app for Linux called Sound Sift. Download Spotify / YT to mp3 music. 
+# :bookmark: Table of contents
+1. [About](#about)
+2. [Installation](#installation)
+3. [Usage](#usage)
 
-You must add eternity ready api keys. The file to add API keys is located on Git Hub @ /components/drivers/Spotiffy.py
+## :question: About <a name="about"></a>
+soundsift is a small but powerful GUI program to download spotify and youtube music into the mp3 format.
 
-Also the image below will show the example. 
+## :file_folder: Installation <a name="installation"></a>
 
-<img width="1843" height="605" alt="image" src="https://github.com/user-attachments/assets/31a6292e-52e8-4e36-beea-f03951999f8d" />
+Execute the following two commands at your terminal window in your Downloads folder.
 
+Remember to download the .deb package at the [Releases](https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux/releases/download/1.0.16/soundsift_1.0.16_amd64.deb) page.
 
-Spotify feature works like this:
+### :penguin: Package (Debian)
+```sh
+sudo apt-get install ./soundsift_1.0.16_amd64.deb
+```
 
-1. Use Spotify API to erxtract infromation from links or playlist links like (title, description, artist etc)
-2. Using above info, we search the track in YT with the best quality using original infromation
-3. We download the tracks from Youtube
+### :snake: Pypi dependencies
+```sh
+pip install "customtkinter>=5.2.2" "openpyxl>=3.1.5" "requests>=2.32.3" "spotify_dl>=8.9.0" "spotipy>=2.25.1" "yt_dlp>=2025.2.19"
+```
 
-* Spotify does not allow this
+## :computer: Usage <a name="usage"></a>
+Once you execute both commands successfully you can now open the program using the terminal or by clicking the program icon at the desktop.
+
+<div align="center">
+    <img align="center"
+        src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/readme_res/soundsift-gui.png"
+        style="width: 100%; max-width: 600px"
+        alt="Drawing of a media player">
+    <br>
+</div>
+
