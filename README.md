@@ -2,7 +2,7 @@
 <div align="center">
     <img align="center"
         src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/debian/soundsift/usr/share/icons/hicolor/256x256/soundsift.png"
-        style="width: 100%; max-width: 600px"
+        style="width: 100%; max-width: 200px"
         alt="Drawing of a media player">
     <br>
 </div>
