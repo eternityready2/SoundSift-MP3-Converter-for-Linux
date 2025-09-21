@@ -101,7 +101,7 @@ class SpotifyDownloader:
 
         # Fetch tracks from the playlist
         tracks = []
-        for (client_id, client_secret, *_) in CREDENTIALS['spotify']:
+        for sp_idx, (client_id, client_secret, *_) in enumerate(CREDENTIALS['spotify']):
             try:
                 print("Fetching tracks from Spotify playlist...")
                 print(f"CLIENT_ID = {client_id}")
@@ -116,17 +116,18 @@ class SpotifyDownloader:
 
                 # Fetch YouTube URLs for each track
                 for track in tracks:
-                    for (youtube_api_key, *_) in CREDENTIALS['youtube']:
+                    for yt_idx, (youtube_api_key, *_) in enumerate(CREDENTIALS['youtube']):
                         track_search_query = f"{track['name']} {track['artist']}"
                         track['track_url'] = cls.get_youtube_url(track_search_query, youtube_api_key)
                         if track['track_url'] is not None:
                             break
-
+                        CREDENTIALS['youtube'][yt_idx][2] = "failed"
                         print(f"{youtube_api_key} failed, trying another of the pool...")
                 break
 
             except Exception as e:
                 print(f"An error occurred in fetching tracks: {e}")
+                CREDENTIALS['spotify'][sp_idx][2] = "failed"
                 return
 
         if not tracks:

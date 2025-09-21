@@ -196,12 +196,12 @@ class App(ctk.CTk):
         self.tree.tag_configure("evenrow", background="#f2f2f2")
         self.tree.tag_configure("oddrow", background="#ffffff")
 
-        for (cid, secret) in CREDENTIALS['spotify']:
+        for (cid, secret, *_) in CREDENTIALS['spotify']:
             self.spotify_tree.insert("", "end", values=(cid, secret))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
 
-        for api_key in CREDENTIALS['youtube']:
+        for (api_key, *_) in CREDENTIALS['youtube']:
             self.youtube_tree.insert("", "end", values=(api_key,))
             self.youtube_key_entry.delete(0, "end")
 
@@ -263,7 +263,7 @@ class App(ctk.CTk):
             self.spotify_tree.insert("", "end", values=(cid, secret))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
-            CREDENTIALS['spotify'].append([cid, secret])
+            CREDENTIALS['spotify'].append([cid, secret, 'not-tested'])
 
     def update_spotify_row(self):
         selected = self.spotify_tree.selection()
@@ -276,7 +276,7 @@ class App(ctk.CTk):
                 new_secret = secret if secret else current[1]
 
                 idx = self.spotify_tree.index(item)
-                CREDENTIALS['spotify'][idx] = [new_cid, new_secret]
+                CREDENTIALS['spotify'][idx] = [new_cid, new_secret, "no-tested"]
 
                 self.spotify_tree.item(item, values=(new_cid, new_secret))
             self.spotify_id_entry.delete(0, "end")
@@ -298,7 +298,7 @@ class App(ctk.CTk):
         if api_key:
             self.youtube_tree.insert("", "end", values=(api_key,))
             self.youtube_key_entry.delete(0, "end")
-            CREDENTIALS['youtube'].append(api_key)
+            CREDENTIALS['youtube'].append([api_key, 'not-tested'])
 
     def update_youtube_row(self):
         selected = self.youtube_tree.selection()
@@ -306,7 +306,7 @@ class App(ctk.CTk):
         if selected and key:
             for item in selected:
                 idx = self.youtube_tree.index(item)
-                CREDENTIALS['youtube'][idx] = [key]
+                CREDENTIALS['youtube'][idx] = [key, "not-tested"]
                 self.youtube_tree.item(item, values=(key,))
             self.youtube_key_entry.delete(0, "end")
 
