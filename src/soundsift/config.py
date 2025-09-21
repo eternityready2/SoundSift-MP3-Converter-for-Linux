@@ -1,7 +1,7 @@
 import pathlib
 
 CONFIG_PATH = pathlib.Path(__file__).parent.resolve()
-CREDENTIALS_PATH = pathlib.Path.home() / '.soundsift-credentials'
+CREDENTIALS_PATH = pathlib.Path.home() / '.soundsift'
 try:
     CREDENTIALS_PATH.mkdir()
 
