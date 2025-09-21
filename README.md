@@ -1,7 +1,7 @@
 # :cd: soundsift
 <div align="center">
     <img align="center"
-        src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/debian/usr/share/icons/hicolor/256x256/soundsift.png"
+        src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/debian/soundsift/usr/share/icons/hicolor/256x256/soundsift.png"
         style="width: 100%; max-width: 600px"
         alt="Drawing of a media player">
     <br>
@@ -38,7 +38,7 @@ Once you execute both commands successfully you can now open the program using t
     <img align="center"
         src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/readme_res/soundsift-gui.png"
         style="width: 100%; max-width: 600px"
-        alt="Drawing of a media player">
+        alt="GUI">
     <br>
 </div>
 
