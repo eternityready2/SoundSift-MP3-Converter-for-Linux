@@ -16,8 +16,17 @@ CREDENTIALS = {
 
 try:
     with open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'r') as file:
+        cmap = {
+            'not-tested': [],
+            'failed': [],
+            'success': [],
+        }
+
         for line in file.readlines():
-            CREDENTIALS['spotify'].append(line.strip().split(','))
+            credential = line.strip().split(',')
+            cmap[credential[2]].append(credential)
+            
+        CREDENTIALS['spotify'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
 
 except FileNotFoundError:
     with open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file:
@@ -25,8 +34,17 @@ except FileNotFoundError:
 
 try:
     with open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'r') as file:
+        cmap = {
+            'not-tested': [],
+            'failed': [],
+            'success': [],
+        }
+
         for line in file.readlines():
-            CREDENTIALS['youtube'].append(line.strip().split(','))
+            credential = line.strip().split(',')
+            cmap[credential[1]].append(credential)
+
+        CREDENTIALS['youtube'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
 
 except FileNotFoundError:
     with open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file:
