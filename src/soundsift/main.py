@@ -1,8 +1,17 @@
+import json
 import threading
+import logging
+import logging.config
 import customtkinter as ctk
 from tkinter import ttk, messagebox
+
 from soundsift.components.app import download_songs as dwl
-from soundsift.config import CREDENTIALS, CREDENTIALS_PATH
+from soundsift.config import (
+    CREDENTIALS,
+    CREDENTIALS_PATH,
+    LOGGER_CONFIG_PATH,
+    LOGS_PATH
+)
 
 class DataStorage:
     def __init__(self):
@@ -337,6 +346,21 @@ class App(ctk.CTk):
 def main():
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("green")
+
+    with (open(LOGGER_CONFIG_PATH, 'r', encoding="utf-8")
+          as logger_config_fp):
+        logger_config = json.load(logger_config_fp)
+
+    logger_config['handlers']['file']['filename'] = LOGS_PATH
+    logging.config.dictConfig(logger_config)
+
+    logging.getLogger("yt_dlp").setLevel(logging.ERROR)
+    logging.getLogger("spotipy").setLevel(logging.CRITICAL)
+    logging.getLogger("spotify_dl").setLevel(logging.CRITICAL)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
+    
+    logger = logging.getLogger(__name__)
+
     app = App()
     app.mainloop()
 

@@ -1,6 +1,9 @@
 import os
 import yt_dlp
 from soundsift.components.services.ConfigHandler import Config
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Ytube:
     lso_instance = []
@@ -27,7 +30,7 @@ class Ytube:
         if not cls.b_initcls_flg:
             cls.classinit()
 
-        print("Using FFmpeg at path:", cls.str_ffmpeg_path)
+        #logger.debug("Using FFmpeg at path:", cls.str_ffmpeg_path)
 
         # Common download options:
         ydl_opts = {
@@ -51,9 +54,9 @@ class Ytube:
             #with yt_dlp.YoutubeDL() as ydl:
             #    ydl.download([url])
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                print(f"Downloading: {url}")
+                logger.debug(f"Downloading: {url}")
                 ydl.download([url])
 
         except yt_dlp.utils.DownloadError as e:
             # Handle download errors (e.g. HTTP 403, signature extraction, etc.)
-            print(f"An error occurred while downloading {url}: {e}")
+            logger.debug(f"An error occurred while downloading {url}: {e}")

@@ -9,6 +9,8 @@ from soundsift.components.services.ConfigHandler import Config as CFG
 from soundsift.components.drivers.YouTube import Ytube
 from soundsift.config import CREDENTIALS
 
+logger = logging.getLogger(__name__)
+
 class SpotifyDownloader:
     SPOTIPY_CLIENT_ID = '' # Update your Spotify client ID
     SPOTIPY_CLIENT_SECRET = '' # Update your Spotify client secret
@@ -76,26 +78,26 @@ class SpotifyDownloader:
                                 output_path="downloads",
                                 ):
         # Set up logging
-        logger = logging.getLogger('spotify_dl')
-        logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
+        #logger = logging.getLogger('spotify_dl')
+        #logger.setLevel(logging.DEBUG)
+        #ch = logging.StreamHandler()
+        #ch.setLevel(logging.DEBUG)
+        #formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        #ch.setFormatter(formatter)
+        #logger.addHandler(ch)
 
         # Scan link type and fetch tracks accordingly
         spotify_link_type = cls.get_spotify_link_type(playlist_url)
         if spotify_link_type == "unknown"or spotify_link_type == "episode" or spotify_link_type == "artist" or spotify_link_type == "album":
-            print("Invalid Spotify track or playlist link.")
+            logger.debug("Invalid Spotify track or playlist link.")
             return
 
         try:
-            print("Extracting playlist ID...")
+            logger.debug("Extracting playlist ID...")
             item_id = cls.extract_item_id(playlist_url)
-            print(f"Playlist ID extracted: {item_id}")
+            logger.debug(f"Playlist ID extracted: {item_id}")
         except ValueError as e:
-            print(f"Invalid playlist URL: {e}")
+            logger.debug(f"Invalid playlist URL: {e}")
             return
 
 
@@ -103,15 +105,15 @@ class SpotifyDownloader:
         tracks = []
         for sp_idx, (client_id, client_secret, *_) in enumerate(CREDENTIALS['spotify']):
             try:
-                print("Fetching tracks from Spotify playlist...")
-                print(f"CLIENT_ID = {client_id}")
-                print(f"CLIENT_SECRET = {client_secret}")
+                logger.debug("Fetching tracks from Spotify playlist...")
+                logger.debug(f"CLIENT_ID = {client_id}")
+                logger.debug(f"CLIENT_SECRET = {client_secret}")
 
                 sp = cls.authenticate_spotify(client_id, client_secret)
                 tracks = fetch_tracks(sp, str(spotify_link_type), item_id)
 
                 if not tracks:
-                    print("No tracks found in the playlist. Please check the URL or playlist privacy settings.")
+                    logger.debug("No tracks found in the playlist. Please check the URL or playlist privacy settings.")
                     return
 
                 # Fetch YouTube URLs for each track
@@ -123,24 +125,24 @@ class SpotifyDownloader:
                             CREDENTIALS['youtube'][yt_idx][1] = "success"
                             break
                         CREDENTIALS['youtube'][yt_idx][1] = "failed"
-                        print(f"{youtube_api_key} failed, trying another of the pool...")
+                        logger.debug(f"{youtube_api_key} failed, trying another of the pool...")
                 CREDENTIALS['spotify'][sp_idx][2] = "success"
                 break
 
             except Exception as e:
-                print(f"An error occurred in fetching tracks: {e}")
+                logger.debug(f"An error occurred in fetching tracks: {e}")
                 CREDENTIALS['spotify'][sp_idx][2] = "failed"
                 return
 
         if not tracks:
             return
 
-        # print youtube urls for each track
+        # logger.debug youtube urls for each track
         for track in tracks:
             if track['track_url'] is None:
                 continue
 
-            print(f"Processing: {track['name']} - {track['artist']}")
+            logger.debug(f"Processing: {track['name']} - {track['artist']}")
             #print(f"{track['name']} - {track['artist']}: {track['track_url']}")
             Ytube.download_audio_yt_dlp(track['track_url'])
 
@@ -167,7 +169,7 @@ class SpotifyDownloader:
         # Download tracks as MP3
         #download_songs(**download_params)
 
-        print("Download completed!")
+        logger.debug("Download completed!")
 
 # Example usage:
 # SpotifyDownloader.download_spotify_tracks('https://open.spotify.com/playlist/YOUR_PLAYLIST_ID')
