@@ -192,17 +192,22 @@ class App(ctk.CTk):
         self.youtube_delete_button = ctk.CTkButton(self.youtube_frame, text="Delete Row", command=self.delete_youtube_row)
         self.youtube_delete_button.pack(fill="x", padx=5, pady=(2, 10))
 
-        # Main Tree coloring
-        self.tree.tag_configure("evenrow", background="#f2f2f2")
-        self.tree.tag_configure("oddrow", background="#ffffff")
+        # ======= Tag Styles for Coloring =======
+        self.spotify_tree.tag_configure("success", background="#d4fcd4")     # Green
+        self.spotify_tree.tag_configure("failed", background="#f79999")      # Gray
+        self.spotify_tree.tag_configure("not-tested", background="#eaeaea")  # Light gray
+        self.youtube_tree.tag_configure("success", background="#d4fcd4")
+        self.youtube_tree.tag_configure("failed", background="#f79999")
+        self.youtube_tree.tag_configure("not-tested", background="#eaeaea")
 
-        for (cid, secret, *_) in CREDENTIALS['spotify']:
-            self.spotify_tree.insert("", "end", values=(cid, secret))
+        # Populate credential trees with color tags according to state
+        for (cid, secret, state, *_) in CREDENTIALS['spotify']:
+            self.spotify_tree.insert("", "end", values=(cid, secret), tags=(state,))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
 
-        for (api_key, *_) in CREDENTIALS['youtube']:
-            self.youtube_tree.insert("", "end", values=(api_key,))
+        for (api_key, state, *_) in CREDENTIALS['youtube']:
+            self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
             self.youtube_key_entry.delete(0, "end")
 
     # ================= Main Methods =================
@@ -233,7 +238,6 @@ class App(ctk.CTk):
                 self.after(0, lambda i=item, s=status_result, l=link: self.tree.item(i, values=(s, l)))
                 self.storage.update_data(index, status=status_result)
 
-        # Start single thread for all processing
         threading.Thread(target=process_all_links, daemon=True).start()
 
     def update_row(self):
@@ -260,7 +264,7 @@ class App(ctk.CTk):
         cid = self.spotify_id_entry.get()
         secret = self.spotify_secret_entry.get()
         if cid and secret:
-            self.spotify_tree.insert("", "end", values=(cid, secret))
+            self.spotify_tree.insert("", "end", values=(cid, secret), tags=("not-tested",))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
             CREDENTIALS['spotify'].append([cid, secret, 'not-tested'])
@@ -276,9 +280,9 @@ class App(ctk.CTk):
                 new_secret = secret if secret else current[1]
 
                 idx = self.spotify_tree.index(item)
-                CREDENTIALS['spotify'][idx] = [new_cid, new_secret, "no-tested"]
+                CREDENTIALS['spotify'][idx] = [new_cid, new_secret, "not-tested"]
 
-                self.spotify_tree.item(item, values=(new_cid, new_secret))
+                self.spotify_tree.item(item, values=(new_cid, new_secret), tags=("not-tested",))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
 
@@ -296,7 +300,7 @@ class App(ctk.CTk):
     def add_youtube_row(self):
         api_key = self.youtube_key_entry.get()
         if api_key:
-            self.youtube_tree.insert("", "end", values=(api_key,))
+            self.youtube_tree.insert("", "end", values=(api_key,), tags=("not-tested",))
             self.youtube_key_entry.delete(0, "end")
             CREDENTIALS['youtube'].append([api_key, 'not-tested'])
 
@@ -307,7 +311,7 @@ class App(ctk.CTk):
             for item in selected:
                 idx = self.youtube_tree.index(item)
                 CREDENTIALS['youtube'][idx] = [key, "not-tested"]
-                self.youtube_tree.item(item, values=(key,))
+                self.youtube_tree.item(item, values=(key,), tags=("not-tested",))
             self.youtube_key_entry.delete(0, "end")
 
     def delete_youtube_row(self):
@@ -325,11 +329,9 @@ class App(ctk.CTk):
             with open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file:
                 for credential in CREDENTIALS['spotify']:
                     file.write(','.join(credential) + '\n')
-
             with open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file:
                 for credential in CREDENTIALS['youtube']:
                     file.write(','.join(credential) + '\n')
-
             self.destroy()
 
 def main():
