@@ -1,7 +1,5 @@
-soundsift (1.0.16) stable; urgency=low
+soundsift (1.0.27) stable; urgency=low
 
-  * soundsift.desktop
-  * icon png
-  * credential path fixed
+  * fix issues
 
- -- sivefunc <sivefunc@tuta.io>  Sun, 20 Sep 2025 20:12:00 +0200
+ -- sivefunc <sivefunc@tuta.io>  Mon, 22 Sep 2025 22:13:00 +0200
