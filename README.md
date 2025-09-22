@@ -1,7 +1,7 @@
 # :cd: soundsift
 <div align="center">
     <img align="center"
-        src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/debian/soundsift/usr/share/icons/hicolor/256x256/soundsift.png"
+        src="https://raw.githubusercontent.com/eternityready2/SoundSift-MP3-Converter-for-Linux/refs/heads/main/debian/soundsift/usr/share/icons/hicolor/256x256/apps/soundsift.png"
         width="100" height="100"
         alt="Drawing of a media player">
     <br>
