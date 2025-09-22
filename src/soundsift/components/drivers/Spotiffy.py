@@ -93,7 +93,6 @@ class SpotifyDownloader:
         #logger.addHandler(ch)
 
         # Scan link type and fetch tracks accordingly
-        """
         spotify_link_type = cls.get_spotify_link_type(playlist_url)
         if spotify_link_type == "unknown"or spotify_link_type == "episode" or spotify_link_type == "artist" or spotify_link_type == "album":
             logger.debug("Invalid Spotify track or playlist link.")
@@ -106,8 +105,6 @@ class SpotifyDownloader:
         except ValueError as e:
             logger.debug(f"Invalid playlist URL: {e}")
             return
-        """
-
 
         # Fetch tracks from the playlist
         tracks = []
@@ -118,8 +115,8 @@ class SpotifyDownloader:
                 logger.debug(f"CLIENT_ID = {client_id}")
                 logger.debug(f"CLIENT_SECRET = {client_secret}")
 
-                #sp = cls.authenticate_spotify(client_id, client_secret)
-                #tracks = fetch_tracks(sp, str(spotify_link_type), item_id)
+                sp = cls.authenticate_spotify(client_id, client_secret)
+                tracks = fetch_tracks(sp, str(spotify_link_type), item_id)
                 tracks = [
                     {'name': "Beatufiul", 'artist': "Kmbra"},
                     {'name': "Beatufiul", 'artist': "Kmbra"},
@@ -155,7 +152,7 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"An error occurred in fetching tracks: {e}")
                 CREDENTIALS['spotify'][sp_idx][2] = "failed"
-                return
+                continue
 
         if not tracks or all(track['track_url'] is None for track in tracks):
             logger.error('Failed fetching tracks from playlist')
