@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SoundSift
+Comment=YouTube and Spotify MP3 Converter
+Exec=/usr/local/bin/soundsift
+Icon=soundsift
+Terminal=false
+Categories=AudioVideo;Utility;
+
