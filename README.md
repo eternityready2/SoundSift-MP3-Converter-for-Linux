@@ -19,11 +19,11 @@ soundsift is a small but powerful GUI program to download spotify and youtube mu
 
 Execute the following two commands at your terminal window in your Downloads folder.
 
-Remember to download the .deb package at the [Releases](https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux/releases/download/1.0.16/soundsift_1.0.16_amd64.deb) page.
+Remember to download the .deb package at the [Releases](https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux/releases/download/1.0.27/soundsift_1.0.27_amd64.deb) page.
 
 ### :penguin: Package (Debian)
 ```sh
-sudo apt-get install ./soundsift_1.0.16_amd64.deb
+sudo apt-get install ./soundsift_1.0.27_amd64.deb
 ```
 
 ### :snake: Pypi dependencies
