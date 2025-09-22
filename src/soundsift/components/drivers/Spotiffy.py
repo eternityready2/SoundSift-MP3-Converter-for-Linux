@@ -114,6 +114,7 @@ class SpotifyDownloader:
         for sp_idx, (client_id, client_secret, *_) in enumerate(CREDENTIALS['spotify']):
             try:
                 logger.debug("Fetching tracks from Spotify playlist...")
+                logger.debug(f"Spotify credential {sp_idx+1}/{len(CREDENTIALS['spotify'])}")
                 logger.debug(f"CLIENT_ID = {client_id}")
                 logger.debug(f"CLIENT_SECRET = {client_secret}")
 
