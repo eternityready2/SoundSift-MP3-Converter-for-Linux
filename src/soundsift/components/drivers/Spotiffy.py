@@ -144,6 +144,9 @@ class SpotifyDownloader:
                             CREDENTIALS['youtube'][yt_idx][1] = "success"
                             break
                         CREDENTIALS['youtube'][yt_idx][1] = "failed"
+                        if yt_idx == len(CREDENTIALS['youtube']) - 1:
+                            logger.debug(f"All API Keys failed, leaving...")
+                            return
                         logger.debug(f"{youtube_api_key} failed, trying another of the pool...")
                         print('---')
                 CREDENTIALS['spotify'][sp_idx][2] = "success"
