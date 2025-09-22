@@ -28,7 +28,7 @@ sudo apt-get install ./soundsift_1.0.27_amd64.deb
 
 ### :snake: Pypi dependencies
 ```sh
-pip install "customtkinter>=5.2.2" "openpyxl>=3.1.5" "requests>=2.32.3" "spotify_dl>=8.9.0" "spotipy>=2.25.1" "yt_dlp>=2025.2.19"
+pip install "customtkinter>=5.2.2" "openpyxl>=3.1.5" "requests>=2.32.3" "spotify_dl>=8.9.0" "spotipy>=2.25.1" "yt_dlp>=2025.2.19" --break-system-packages
 ```
 
 ## :computer: Usage <a name="usage"></a>
