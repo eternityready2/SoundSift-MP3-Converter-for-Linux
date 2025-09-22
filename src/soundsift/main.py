@@ -264,10 +264,10 @@ class App(ctk.CTk):
         cid = self.spotify_id_entry.get()
         secret = self.spotify_secret_entry.get()
         if cid and secret:
-            self.spotify_tree.insert("", "end", values=(cid, secret), tags=("not-tested",))
+            self.spotify_tree.insert("", 0, values=(cid, secret), tags=("not-tested",))
             self.spotify_id_entry.delete(0, "end")
             self.spotify_secret_entry.delete(0, "end")
-            CREDENTIALS['spotify'].append([cid, secret, 'not-tested'])
+            CREDENTIALS['spotify'].insert(0, [cid, secret, 'not-tested'])
 
     def update_spotify_row(self):
         selected = self.spotify_tree.selection()
@@ -300,9 +300,9 @@ class App(ctk.CTk):
     def add_youtube_row(self):
         api_key = self.youtube_key_entry.get()
         if api_key:
-            self.youtube_tree.insert("", "end", values=(api_key,), tags=("not-tested",))
+            self.youtube_tree.insert("", 0, values=(api_key,), tags=("not-tested",))
             self.youtube_key_entry.delete(0, "end")
-            CREDENTIALS['youtube'].append([api_key, 'not-tested'])
+            CREDENTIALS['youtube'].insert(0, [api_key, 'not-tested'])
 
     def update_youtube_row(self):
         selected = self.youtube_tree.selection()
