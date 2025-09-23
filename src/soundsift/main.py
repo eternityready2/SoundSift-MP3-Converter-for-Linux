@@ -2,23 +2,18 @@ import customtkinter as ctk
 from tkinter import ttk, PhotoImage
 import threading
 import logging
+import logging.config
 import os
 from soundsift.components.app.download_songs import MusicDownloader
 import concurrent.futures
+import json
 
-# Global configuration for logging
-ENABLE_LOGGING = False
-LOG_FILE_PATH = os.path.join("log", "soundsift.log")
-
-def setup_logging():
-    """Set up logging if enabled."""
-    if ENABLE_LOGGING:
-        os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            handlers=[logging.FileHandler(LOG_FILE_PATH), logging.StreamHandler()]
-        )
+from soundsift.config import (
+    CREDENTIALS,
+    CREDENTIALS_PATH,
+    LOGGER_CONFIG_PATH,
+    LOGS_PATH
+)
 
 class DataStorage:
     def __init__(self):
@@ -43,9 +38,7 @@ class App(ctk.CTk):
         self.geometry("600x400")
         self.storage = DataStorage()
 
-        # Setup logging
-        setup_logging()
-        self.logger = logging.getLogger("soundsift")
+        self.logger = logging.getLogger(__name__)
 
         # Set window icon using PNG
         icon_path = "/usr/share/icons/hicolor/256x256/apps/soundsift.png"
@@ -144,8 +137,7 @@ class App(ctk.CTk):
             self.tree.insert("", "end", values=("NEW", link), tags=(tag,))
             self.storage.add_data("NEW", link)
             self.link_entry.delete(0, "end")
-            if ENABLE_LOGGING:
-                self.logger.info(f"Added link: {link}")
+            self.logger.info(f"Added link: {link}")
 
     def calculate_total_steps(self, links):
         total_steps = 0
@@ -215,11 +207,10 @@ class App(ctk.CTk):
         callback("end_link")
         self.after(0, lambda: self.tree.item(item, values=(status, link)))
         self.storage.update_data(index, status=status)
-        if ENABLE_LOGGING:
-            if status == "Success":
-                self.logger.info(f"Downloaded {link}: {message}")
-            else:
-                self.logger.error(f"Failed to download {link}: {message}")
+        if status == "Success":
+            self.logger.info(f"Downloaded {link}: {message}")
+        else:
+            self.logger.error(f"Failed to download {link}: {message}")
 
     def update_row(self):
         selected_item = self.tree.selection()
@@ -231,8 +222,7 @@ class App(ctk.CTk):
                     index = self.tree.index(item)
                     self.storage.update_data(index, link=link)
                 self.link_entry.delete(0, "end")
-                if ENABLE_LOGGING:
-                    self.logger.info(f"Updated link to: {link}")
+                self.logger.info(f"Updated link to: {link}")
 
     def delete_row(self):
         selected_items = self.tree.selection()
@@ -242,15 +232,21 @@ class App(ctk.CTk):
                 link = self.tree.item(item, "values")[1]
                 self.tree.delete(item)
                 self.storage.delete_data(index)
-                if ENABLE_LOGGING:
-                    self.logger.info(f"Deleted link: {link}")
+                self.logger.info(f"Deleted link: {link}")
 
 def main():
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
+
+    with (open(LOGGER_CONFIG_PATH, 'r', encoding="utf-8")
+          as logger_config_fp):
+        logger_config = json.load(logger_config_fp)
+
+    logger_config['handlers']['file']['filename'] = LOGS_PATH
+    logging.config.dictConfig(logger_config)
+
     app = App()
     app.mainloop()
 
 if __name__ == "__main__":
     main()
-

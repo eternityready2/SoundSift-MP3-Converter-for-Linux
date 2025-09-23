@@ -7,6 +7,8 @@ import shutil
 import requests
 from soundsift.components.drivers.metadata_mp3 import MetadataMP3
 
+logger = logging.getLogger(__name__)
+
 class Ytube:
     FFMPEG_PATH = shutil.which("ffmpeg") or os.getenv("FFMPEG_PATH")
     if not FFMPEG_PATH:
@@ -15,7 +17,6 @@ class Ytube:
     @classmethod
     def download_thumbnail(cls, thumbnail_url, output_path, filename):
         """Download thumbnail image."""
-        logger = logging.getLogger("soundsift")
         if not thumbnail_url:
             return
         try:
@@ -36,7 +37,6 @@ class Ytube:
     @classmethod
     def download_audio_yt_dlp(cls, url, output_path, metadata=None, callback=None):
         """Download audio from YouTube with callbacks, returning the final MP3 path."""
-        logger = logging.getLogger("soundsift")
         if not url or not isinstance(url, str):
             logger.error("Invalid URL provided.")
             return "Failed", "Invalid URL", None
@@ -98,7 +98,6 @@ class Ytube:
     @classmethod
     def download_playlist(cls, url, output_path, callback=None):
         """Download YouTube playlist."""
-        logger = logging.getLogger("soundsift")
         temp_dir = os.path.join(output_path, f"playlist_{uuid.uuid4().hex}")
         os.makedirs(temp_dir, exist_ok=True)
 

@@ -4,13 +4,14 @@ from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3, APIC
 from mutagen import File
 
+logger = logging.getLogger(__name__)
+
 class MetadataMP3:
     """A singleton-like class to handle MP3 metadata application and renaming."""
 
     @classmethod
     def apply_metadata(cls, mp3_path, metadata):
         """Apply metadata to the MP3 file, embed the thumbnail, delete it, and remove encoder settings."""
-        logger = logging.getLogger("soundsift")
         try:
             # Load or create ID3 tags
             audio = EasyID3(mp3_path) if os.path.exists(mp3_path) and EasyID3.valid_keys else File(mp3_path, easy=True)
@@ -96,7 +97,6 @@ class MetadataMP3:
     @classmethod
     def rename_file(cls, mp3_path, metadata):
         """Rename the MP3 file to [artist] - [title].mp3 if metadata is available."""
-        logger = logging.getLogger("soundsift")
         if "artist" in metadata and "title" in metadata and metadata["artist"] and metadata["title"]:
             new_name = f"{metadata['artist']} - {metadata['title']}.mp3"
             new_path = os.path.join(os.path.dirname(mp3_path), new_name)

@@ -8,6 +8,8 @@ from soundsift.components.drivers.archive import ArchiveManager
 from soundsift.components.drivers.YouTube import Ytube
 from soundsift.components.drivers.Spotify import SpotifyDownloader
 
+logger = logging.getLogger(__name__)
+
 class MusicDownloader:
     instances = []
     YOUTUBE_PATTERN = r'youtube\.com|youtu\.be'
@@ -69,7 +71,6 @@ class MusicDownloader:
     @classmethod
     def download_music(cls, url, output_path, callback=None):
         """Download music based on URL type."""
-        logger = logging.getLogger("soundsift")
         source = cls.identify_source(url)
 
         try:

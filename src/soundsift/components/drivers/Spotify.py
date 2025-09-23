@@ -10,7 +10,10 @@ from soundsift.components.drivers.YouTube import Ytube
 from soundsift.components.drivers.archive import ArchiveManager
 from dotenv import load_dotenv
 
+
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class SpotifyDownloader:
     SPOTIPY_CLIENT_ID = 'c391704d72a84400a96b718a786aa732'
@@ -63,7 +66,6 @@ class SpotifyDownloader:
 
     @classmethod
     def get_youtube_url(cls, search_query):
-        logger = logging.getLogger("soundsift")
         for api_key in cls.YOUTUBE_API_KEYS:
             search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={search_query}&key={api_key}&type=video"
             try:
@@ -88,7 +90,6 @@ class SpotifyDownloader:
 
     @classmethod
     def fetch_track_metadata(cls, sp, track_id):
-        logger = logging.getLogger("soundsift")
         try:
             track_info = sp.track(track_id)
             metadata = {
@@ -141,7 +142,6 @@ class SpotifyDownloader:
 
     @classmethod
     def download_spotify_tracks(cls, playlist_url, output_path, callback=None):
-        logger = logging.getLogger("soundsift")
         sp = cls.authenticate_spotify()
         link_type = cls.get_spotify_link_type(playlist_url)
         if link_type in ["unknown", "episode", "artist"]:

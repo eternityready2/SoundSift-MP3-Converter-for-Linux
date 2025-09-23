@@ -2,6 +2,8 @@ import os
 import zipfile
 import logging
 
+logger = logging.getLogger(__name__)
+
 class ArchiveManager:
     @classmethod
     def create_zip(cls, output_path, files, zip_name="archive.zip"):
@@ -13,7 +15,6 @@ class ArchiveManager:
         :param zip_name: Name of the ZIP file to create.
         :return: Path to the created ZIP file or None if an error occurred.
         """
-        logger = logging.getLogger("soundsift")
         zip_path = os.path.join(output_path, zip_name)
 
         try:

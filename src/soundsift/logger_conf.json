@@ -14,19 +14,19 @@
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "simple",
-            "level": "DEBUG"
+            "level": "INFO"
         },
         "file": {
             "class": "logging.FileHandler",
             "filename": "soundsift.log",
             "formatter": "standard",
-            "level": "DEBUG"
+            "level": "INFO"
         }
     },
     "loggers": {
         "": {
             "handlers": ["console", "file"],
-            "level": "DEBUG"
+            "level": "INFO"
         }
     }
 }
