@@ -22,8 +22,8 @@ class SpotifyDownloader:
 
     # Converted to a list of API keys
     YOUTUBE_API_KEYS = [
-        'AIzaSyDTvJnvE9Q7psr4RosC_w2D2vxg_gnDEyg',
-        'AIzaSyD3JyU15d15GNLdLWqdMTFQBaqwfqkxrP0',# Your current key
+        'aAIzaSyDTvJnvE9Q7psr4RosC_w2D2vxg_gnDEyg',
+        'bAIzaSyD3JyU15d15GNLdLWqdMTFQBaqwfqkxrP0',# Your current key
         # Add more keys here as needed, e.g.:
         # 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         # 'AIzaSyYYYYYYYYYYYYYYYYYYYYYYYYYYYYY',
@@ -66,7 +66,7 @@ class SpotifyDownloader:
 
     @classmethod
     def get_youtube_url(cls, search_query):
-        for api_key in cls.YOUTUBE_API_KEYS:
+        for yt_idx, api_key in enumerate(cls.YOUTUBE_API_KEYS):
             search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={search_query}&key={api_key}&type=video"
             try:
                 response = requests.get(search_url, timeout=10)
@@ -77,16 +77,23 @@ class SpotifyDownloader:
                     logger.info(f"Fetched YouTube URL with API key: {api_key[:8]}...")
                     return youtube_url
             except requests.HTTPError as e:
-                if e.response.status_code == 403:
-                    logger.warning(f"API key {api_key[:8]}... quota exceeded, trying next key...")
+                if e.response.status_code in {400, 403}:
+                    message = f"API key failed: {api_key[:8]}... {e.response.json()['error']['message'].strip(".")}"
+                    if yt_idx != len(cls.YOUTUBE_API_KEYS) - 1:
+                        message += ", trying next key..."
+
+                    else:
+                        message += ", this wast the last key..."
+
+                    logger.warning(message)
                     continue
                 logger.error(f"YouTube API error: {e}")
                 return None
             except requests.RequestException as e:
                 logger.error(f"YouTube API request failed: {e}")
                 return None
-        logger.error("API Quota Exceeded")
-        raise ValueError("API Quota Exceeded")
+        logger.error("All YT API keys failed, stop the downloading of tracks...")
+        raise ValueError("All YT API keys failed, stop the downloading of tracks...")
 
     @classmethod
     def fetch_track_metadata(cls, sp, track_id):
