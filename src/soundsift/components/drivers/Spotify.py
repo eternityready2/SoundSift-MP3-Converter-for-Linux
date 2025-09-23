@@ -72,13 +72,14 @@ class SpotifyDownloader:
                 response = requests.get(search_url, timeout=10)
                 response.raise_for_status()
                 results = response.json().get('items', [])
+
                 if results:
                     youtube_url = f"https://www.youtube.com/watch?v={results[0]['id']['videoId']}"
-                    logger.info(f"Fetched YouTube URL with API key: {api_key[:8]}...")
+                    logger.info(f"Fetched YouTube URL with API key {yt_idx+1}/{len(cls.YOUTUBE_API_KEYS)}: {api_key[:8]}...")
                     return youtube_url
             except requests.HTTPError as e:
                 if e.response.status_code in {400, 403}:
-                    message = f"API key failed: {api_key[:8]}... {e.response.json()['error']['message'].strip(".")}"
+                    message = f"API key failed {yt_idx+1}/{len(cls.YOUTUBE_API_KEYS)}: {api_key[:8]}... {e.response.json()['error']['message'].strip(".")}"
                     if yt_idx != len(cls.YOUTUBE_API_KEYS) - 1:
                         message += ", trying next key..."
 
