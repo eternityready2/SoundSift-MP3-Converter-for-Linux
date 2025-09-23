@@ -1,5 +1,5 @@
-soundsift (1.0.27) stable; urgency=low
+soundsift (1.0.29) stable; urgency=low
 
-  * fix issues
+  * add credentials
 
- -- sivefunc <sivefunc@tuta.io>  Mon, 22 Sep 2025 22:13:00 +0200
+ -- sivefunc <sivefunc@tuta.io>  Tue, 23 Sep 2025 11:45:00 +0200
