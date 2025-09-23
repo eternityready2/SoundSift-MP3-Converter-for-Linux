@@ -24,6 +24,6 @@ c5b9e2ddbd519ecb262d8fbdd6dbb650  usr/lib/python3/dist-packages/soundsift/logger
 bf2cf38c85974d85fe2854fefa7cb277  usr/lib/python3/dist-packages/soundsift/main.py
 1183f3fba94e87fa32f974045de658d1  usr/lib/python3/dist-packages/soundsift/spotify-credentials.csv
 d7d6c17b780f23be7b146ff306eb365d  usr/lib/python3/dist-packages/soundsift/youtube-credentials.csv
-4d19e618ea4b1ab0660d9907af822299  usr/share/applications/soundsift.desktop
+e2b689f5de8e2a3168bfa2960fe40da2  usr/share/applications/soundsift.desktop
 0229a78b2bc713805c69ffab81f4590b  usr/share/doc/soundsift/changelog.gz
 bfa96e13a7a8c709923c75a177bce88f  usr/share/icons/hicolor/256x256/apps/soundsift.png

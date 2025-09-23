@@ -6,6 +6,6 @@ echo "Copying .desktop to Desktop folder"
 for userdir in /home/*; do
     if [ -d "$userdir/Desktop" ]; then
         cp /usr/share/applications/soundsift.desktop "$userdir/Desktop/"
-        chown $(basename $userdir):$(basename $userdir) "$userdir/soundsift.desktop"
+        chown $(basename $userdir):$(basename $userdir) "$userdir/Desktop/soundsift.desktop"
     fi
 done
