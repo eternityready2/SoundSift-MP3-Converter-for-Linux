@@ -4,6 +4,6 @@ Name=SoundSift
 Comment=YouTube and Spotify MP3 Converter
 Exec=/usr/local/bin/soundsift
 Icon=soundsift
-Terminal=false
+Terminal=true
 Categories=AudioVideo;Utility;
 

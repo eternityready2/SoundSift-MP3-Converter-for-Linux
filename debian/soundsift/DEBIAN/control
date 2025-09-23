@@ -1,8 +1,8 @@
 Package: soundsift
-Version: 1.0.27
+Version: 1.0.29
 Architecture: amd64
 Maintainer: sivefunc <sivefunc@tuta.io>
-Installed-Size: 172
+Installed-Size: 175
 Depends: python3:any, python3, python3-pip, python3-tk, python3-requests, python3-packaging
 Section: python
 Priority: optional
