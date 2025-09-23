@@ -42,4 +42,4 @@ soundsift = "soundsift.main:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-soundsift = ["*.py", "*.json", "*.toml", "*.ini"]
+soundsift = ["*.py", "*.json", "*.toml", "*.ini", "*.csv"]

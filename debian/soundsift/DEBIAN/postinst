@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "Post install script is running now"
+pip install --ignore-installed customtkinter openpyxl requests spotify_dl spotipy yt_dlp --break-system-packages
