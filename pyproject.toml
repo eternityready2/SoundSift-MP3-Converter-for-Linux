@@ -15,12 +15,14 @@ readme = {file = 'README.md', content-type='text/markdown', charset="UTF-8", var
 requires-python = ">=3.11"
 
 dependencies = [
-  "customtkinter>=5.2.2",
-  "openpyxl>=3.1.5",
-  "requests>=2.32.3",
-  "spotify_dl>=8.9.0",
-  "spotipy>=2.25.1",
-  "yt_dlp>=2025.2.19"
+  "customtkinter",
+  "openpyxl",
+  "requests",
+  "spotify_dl",
+  "spotipy",
+  "yt_dlp",
+  "python-dotenv",
+  "mutagen",
 ]
 
 [project.optional-dependencies]

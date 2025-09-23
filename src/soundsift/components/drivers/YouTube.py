@@ -1,62 +1,137 @@
-import os
-import yt_dlp
-from soundsift.components.services.ConfigHandler import Config
-import logging
 
-logger = logging.getLogger(__name__)
+import os
+import uuid
+import yt_dlp
+import logging
+import shutil
+import requests
+from soundsift.components.drivers.metadata_mp3 import MetadataMP3
 
 class Ytube:
-    lso_instance = []
-    b_initcls_flg = False
-    str_ffmpeg_path = ''
+    FFMPEG_PATH = shutil.which("ffmpeg") or os.getenv("FFMPEG_PATH")
+    if not FFMPEG_PATH:
+        raise FileNotFoundError("FFmpeg not found. Install it or set FFMPEG_PATH.")
 
     @classmethod
-    def classinit(cls):
-        cls.b_initcls_flg = True
-        cls.str_ffmpeg_path = os.path.join(
-            Config.get_Root_Path(),
-            'thired_party', 'FFmpeg', 'bin', 'FFmpeg.exe'
-        )
-        # If you need pydub or similar, you can set:
-        # AudioSegment.converter = cls.str_ffmpeg_path
+    def download_thumbnail(cls, thumbnail_url, output_path, filename):
+        """Download thumbnail image."""
+        logger = logging.getLogger("soundsift")
+        if not thumbnail_url:
+            return
+        try:
+            response = requests.get(thumbnail_url, stream=True, timeout=10)
+            response.raise_for_status()
+            thumbnail_path = os.path.join(output_path, f"{filename}.jpg")
+            with open(thumbnail_path, "wb") as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+            logger.info(f"Thumbnail downloaded to {thumbnail_path}")
+            print(f"Thumbnail downloaded to {thumbnail_path}")
+            return thumbnail_path
+        except requests.RequestException as e:
+            logger.error(f"Error downloading thumbnail: {e}")
+            print(f"Error downloading thumbnail: {e}")
+            return None
 
     @classmethod
-    def download_audio_yt_dlp(cls, url, output_path=Config.get_Download_Path()):
-        """
-        Downloads audio from a YouTube URL using yt-dlp.
-        Converts it to mp3 at 192 kbps.
-        """
+    def download_audio_yt_dlp(cls, url, output_path, metadata=None, callback=None):
+        """Download audio from YouTube with callbacks, returning the final MP3 path."""
+        logger = logging.getLogger("soundsift")
+        if not url or not isinstance(url, str):
+            logger.error("Invalid URL provided.")
+            return "Failed", "Invalid URL", None
 
-        if not cls.b_initcls_flg:
-            cls.classinit()
+        os.makedirs(output_path, exist_ok=True)
 
-        #logger.debug("Using FFmpeg at path:", cls.str_ffmpeg_path)
-
-        # Common download options:
         ydl_opts = {
             'format': 'bestaudio/best',
-            #'cookiesfrombrowser': ('chrome',),  # or ('firefox',), etc.
-            #'ffmpeg_location': cls.str_ffmpeg_path,  # Path to the FFmpeg binary
-            'noplaylist': True,                     # Set True if you only want single videos
-            'outtmpl': str(output_path)+'/%(title)s.%(ext)s',
+            'ffmpeg_location': cls.FFMPEG_PATH,
+            'noplaylist': True,
+            'outtmpl': f"{output_path}/%(title)s.%(ext)s",
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192',
+                'preferredquality': '320',
             }],
-
-            # OPTIONAL: Clear the cache to avoid stale data issues
-            # 'rm_cachedir': True,
-            # OPTIONAL: Add custom user-agent to avoid 403 if YT is blocking default agents
         }
 
         try:
-            #with yt_dlp.YoutubeDL() as ydl:
-            #    ydl.download([url])
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                logger.debug(f"Downloading: {url}")
-                ydl.download([url])
+                if callback:
+                    callback("start_download")
+                logger.info(f"Downloading: {url}")
+                print(f"Downloading: {url}")
+                info = ydl.extract_info(url, download=True)
+                # Get the actual downloaded file path after extraction
+                downloaded_file = ydl.prepare_filename(info)
+                base_ext = os.path.splitext(downloaded_file)[1]  # e.g., .webm, .m4a
+                mp3_path = downloaded_file.replace(base_ext, ".mp3")
 
+                if callback:
+                    callback("start_conversion")
+                # Conversion happens here via postprocessor
+                if callback:
+                    callback("end_conversion")
+
+                # Ensure the file exists before proceeding
+                if not os.path.exists(mp3_path):
+                    logger.error(f"MP3 file not found after download: {mp3_path}")
+                    return "Failed", "MP3 file not found after download", None
+
+                if metadata and metadata.get("thumbnail"):
+                    thumbnail_path = cls.download_thumbnail(metadata["thumbnail"], output_path, os.path.splitext(os.path.basename(mp3_path))[0])
+
+                if metadata:
+                    MetadataMP3.apply_metadata(mp3_path, metadata)
+                    mp3_path = MetadataMP3.rename_file(mp3_path, metadata)
+
+            return "Success", "Download completed", mp3_path
         except yt_dlp.utils.DownloadError as e:
-            # Handle download errors (e.g. HTTP 403, signature extraction, etc.)
-            logger.debug(f"An error occurred while downloading {url}: {e}")
+            logger.error(f"Download error: {e}")
+            print(f"Download error: {e}")
+            return "Failed", str(e), None
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+            print(f"Unexpected error: {e}")
+            return "Failed", f"Unexpected error: {e}", None
+
+    @classmethod
+    def download_playlist(cls, url, output_path, callback=None):
+        """Download YouTube playlist."""
+        logger = logging.getLogger("soundsift")
+        temp_dir = os.path.join(output_path, f"playlist_{uuid.uuid4().hex}")
+        os.makedirs(temp_dir, exist_ok=True)
+
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'ffmpeg_location': cls.FFMPEG_PATH,
+            'outtmpl': f"{temp_dir}/%(title)s.%(ext)s",
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '320',
+            }],
+            'noplaylist': False,
+        }
+
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                logger.info(f"Downloading playlist: {url}")
+                print(f"Downloading playlist: {url}")
+                info = ydl.extract_info(url, download=False)
+                downloaded_files = []
+                for entry in info['entries']:
+                    video_url = f"https://www.youtube.com/watch?v={entry['id']}"
+                    status, msg, mp3_path = cls.download_audio_yt_dlp(video_url, temp_dir, callback=callback)
+                    if status == "Success" and mp3_path and os.path.exists(mp3_path):
+                        downloaded_files.append(mp3_path)
+            return "Success", "Playlist download completed", downloaded_files, temp_dir
+        except yt_dlp.utils.DownloadError as e:
+            logger.error(f"Playlist download error: {e}")
+            print(f"Playlist download error: {e}")
+            return "Failed", str(e), [], temp_dir
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+            print(f"Unexpected error: {e}")
+            return "Failed", f"Unexpected error: {e}", [], temp_dir
+

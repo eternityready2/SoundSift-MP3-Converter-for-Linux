@@ -1,124 +1,113 @@
-import os
 import re
-from soundsift.components.services.ConfigHandler import Config as CFG
-from soundsift.components.drivers.Excel import Excel as xls
+import logging
+import shutil
+import os
+import yt_dlp
+import spotipy
+from soundsift.components.drivers.archive import ArchiveManager
 from soundsift.components.drivers.YouTube import Ytube
-from soundsift.components.drivers.Spotiffy import SpotifyDownloader
-from soundsift.config import CREDENTIALS
+from soundsift.components.drivers.Spotify import SpotifyDownloader
 
+class MusicDownloader:
+    instances = []
+    YOUTUBE_PATTERN = r'youtube\.com|youtu\.be'
+    SPOTIFY_PATTERN = r'spotify\.com'
 
-class appl:
-    lso_instance = []
-    b_initcls_flg = False
-    str_imputs_path = ''
-    str_imputs_sheet = ''
-
-    def __init__(self,status,url,dlsource):
-        self.status = str(status)
-        self.url = str(url)
-        self.dlsource = str(dlsource)
-        appl.lso_instance.append(self)
+    def __init__(self, status, url, source):
+        self.status = status
+        self.url = url
+        self.source = source
+        MusicDownloader.instances.append(self)
 
     @classmethod
-    def classinit(cls):
-        cls.b_initcls_flg = True
-        #cls.str_imputs_path = os.path.join(CFG.get_Root_Path(),'Inputs.xlsx')
-        cls.str_imputs_sheet= 'Playlist'
-
-    @classmethod
-    def import_data(cls):
-        if cls.b_initcls_flg == False:
-            cls.classinit()
-        xls.Import_Sheet(cls.str_imputs_path,cls.str_imputs_sheet)
-        data = xls.Get_Excel_Data()
-        for el in data:
-            if bool(re.search('youtube', str(el.el2))):
-                cls(el.el1,el.el2,'youtube')
-            elif bool(re.search('spotify', str(el.el2))):
-                cls(el.el1,el.el2,'spotify')
+    def identify_source(cls, url):
+        """Determine the source and type of a URL."""
+        url = str(url).lower()
+        if re.search(cls.YOUTUBE_PATTERN, url):
+            if 'playlist' in url:
+                return 'youtube_playlist'
             else:
-                cls(el.el1,el.el2,'na')
-        xls.Remove_All_Data()
+                return 'youtube_video'
+        elif re.search(cls.SPOTIFY_PATTERN, url):
+            if 'track' in url:
+                return 'spotify_track'
+            elif 'album' in url:
+                return 'spotify_album'
+            elif 'playlist' in url:
+                return 'spotify_playlist'
+        return 'unknown'
 
     @classmethod
-    def import_data_cmd(cls,urls):
-        if cls.b_initcls_flg == False:
-            cls.classinit()
-        for el in urls:
-            if bool(re.search('youtube', str(el))):
-                cls('Pending',el,'youtube')
-            elif bool(re.search('spotify', str(el))):
-                cls('Pending',el,'spotify')
-            else:
-                cls('Pending',el,'na')
+    def get_sub_item_count(cls, url, source):
+        """Get the number of sub-items for playlists and albums."""
+        if source == 'youtube_playlist':
+            ydl_opts = {'quiet': True, 'extract_flat': True}
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    return len(info['entries']) if 'entries' in info else 0
+            except Exception as e:
+                logging.getLogger("soundsift").error(f"Error fetching YouTube playlist length: {e}")
+                return 0
+        elif source in ['spotify_album', 'spotify_playlist']:
+            try:
+                sp = SpotifyDownloader.authenticate_spotify()
+                link_type = SpotifyDownloader.get_spotify_link_type(url)
+                item_id = SpotifyDownloader.extract_item_id(url)
+                if link_type == "playlist":
+                    playlist = sp.playlist(item_id)
+                    return playlist['tracks']['total']
+                elif link_type == "album":
+                    album = sp.album(item_id)
+                    return len(album['tracks']['items'])
+                return 0
+            except Exception as e:
+                logging.getLogger("soundsift").error(f"Error fetching Spotify count: {e}")
+                return 0
+        return 1  # Single items
 
     @classmethod
-    def save_data(cls):
-        if cls.b_initcls_flg == False:
-            cls.classinit()
-        xls.Remove_All_Data()
-        #xls.Add_Data('Status','Link')
-        for el in cls.lso_instance:
-            xls.Add_Data(el.status,el.url)
-        xls.Write_Sheet_Including_Headders(cls.str_imputs_path,cls.str_imputs_sheet)
-        xls.Remove_All_Data()
+    def download_music(cls, url, output_path, callback=None):
+        """Download music based on URL type."""
+        logger = logging.getLogger("soundsift")
+        source = cls.identify_source(url)
 
-    @classmethod
-    def download_music(cls):
-        if cls.b_initcls_flg == False:
-            cls.classinit()
-        for el in cls.lso_instance:
-            if el.status != 'Downloded':
-                if el.dlsource == 'youtube':
-                    try:
-                        Ytube.download_audio_yt_dlp(el.url,CFG.get_Download_Path())
-                        el.status = 'Downloded'
-                    except Exception as e:
-                        print(f"An error occurred: {e}")
-                        el.status = 'Failed'
+        try:
+            if source == 'youtube_playlist':
+                status, msg, downloaded_files, temp_dir = Ytube.download_playlist(url, output_path, callback)
+                if status == 'Success':
+                    zip_name = f"youtube_playlist_{url.split('=')[-1]}.zip"
+                    zip_path = ArchiveManager.create_zip(temp_dir, downloaded_files, zip_name)
+                    if zip_path:
+                        final_zip_path = os.path.join(output_path, zip_name)
+                        shutil.move(zip_path, final_zip_path)
+                        shutil.rmtree(temp_dir)
+                        logger.info(f"Created ZIP archive: {final_zip_path}")
+                    else:
+                        logger.error("Failed to create ZIP archive.")
+                return status, msg
 
-
-                elif el.dlsource == 'spotify':
-                    try:
-                        SpotifyDownloader.download_spotify_tracks(el.url)
-                        el.status = 'Downloded'
-                    except Exception as e:
-                        print(f"An error occurred: {e}")
-                        el.status = 'Failed'
+            elif source == 'youtube_video':
+                # Handle three-value return from download_audio_yt_dlp
+                result = Ytube.download_audio_yt_dlp(url, output_path, callback=callback)
+                if len(result) == 3:
+                    status, msg, _ = result  # Ignore mp3_path for youtube_video
                 else:
-                    print ('Error: Unknown source of download - '+str(el.dlsource))
+                    status, msg = result  # Fallback for unexpected return
+                return status, msg
 
+            elif source == 'spotify_track':
+                status, msg = SpotifyDownloader.download_spotify_tracks(url, output_path, callback)
+                return status, msg
 
+            elif source in ['spotify_album', 'spotify_playlist']:
+                status, msg = SpotifyDownloader.download_spotify_tracks(url, output_path, callback)
+                return status, msg
 
-    @classmethod
-    def download_music_direct(cls,url):
-        if cls.b_initcls_flg == False:
-            cls.classinit()
+            else:
+                logger.error(f"Unknown source for URL: {url}")
+                return 'Failed', 'Invalid or unsupported URL'
 
-        if bool(re.search('youtube', str(url))):
-            try:
-                Ytube.download_audio_yt_dlp(url,CFG.get_Download_Path())
-                return 'Success'
-            except Exception as e:
-                print(f"An error occurred: {e}")
-                return 'Failed'
-
-        elif bool(re.search('spotify', str(url))):
-            try:
-                if not CREDENTIALS['spotify']:
-                    raise Exception("There are no spotify credentials add one")
-
-                if not CREDENTIALS['youtube']:
-                    raise Exception("There are no youtube credentials add one")
-
-                SpotifyDownloader.download_spotify_tracks(
-                    url,
-                    CFG.get_Download_Path(),
-                )
-                return 'Success'
-            except Exception as e:
-                print(f"An error occurred: {e}")
-                return 'Download Failed'
-        else:
-            print ('Error: Unknown source of download - '+str(url))
-            return 'Incorrect Link'
+        except Exception as e:
+            logger.error(f"Error processing {url}: {e}")
+            return 'Failed', str(e)
