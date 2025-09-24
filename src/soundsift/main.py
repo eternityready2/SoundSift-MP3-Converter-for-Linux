@@ -40,7 +40,7 @@ class App(ctk.CTk):
         super().__init__()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.title("SoundSift")
-        self.geometry("900x600")
+        self.geometry("900x625")
         self.storage = DataStorage()
 
         self.logger = logging.getLogger(__name__)
@@ -191,6 +191,10 @@ class App(ctk.CTk):
         self.spotify_export_button = ctk.CTkButton(self.spotify_frame, text="Export Spotify Credential", command=self.export_spotify_credential)
         self.spotify_export_button.pack(fill="x", padx=5, pady=(0, 10))
 
+        self.spotify_import_button = ctk.CTkButton(self.spotify_frame, text="Import Spotify Credential", command=self.import_spotify_credential)
+        self.spotify_import_button.pack(fill="x", padx=5, pady=(0, 10))
+
+
         # --- YouTube Frame ---
         self.youtube_frame = ctk.CTkFrame(self.api_frame)
         self.youtube_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
@@ -240,6 +244,10 @@ class App(ctk.CTk):
 
         self.youtube_export_button = ctk.CTkButton(self.youtube_frame, text="Export Credential YouTube", command=self.export_youtube_credential)
         self.youtube_export_button.pack(fill="x", padx=5, pady=(0, 10))
+
+        self.youtube_import_button = ctk.CTkButton(self.youtube_frame, text="Import Credential YouTube", command=self.import_youtube_credential)
+        self.youtube_import_button.pack(fill="x", padx=5, pady=(0, 10))
+
 
         # ======= Tag Styles for Coloring =======
         self.spotify_tree.tag_configure("success", background="#d4fcd4")     # Green
@@ -479,6 +487,73 @@ class App(ctk.CTk):
             with open(os.path.join(folder_path, 'youtube-credentials.csv'), 'w') as file:
                 for credential in CREDENTIALS['youtube']:
                     file.write(','.join(credential) + '\n')
+
+    def import_spotify_credential(self):
+        file_path = filedialog.askopenfilename(
+            initialdir=os.path.expanduser("~"),
+            filetypes=[("CSV File", ('*.csv'))],
+            title="Select File to Import Spotify Credentials"
+        )
+
+        if file_path:
+            with (
+                open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file1,
+                open(file_path, 'r') as file2
+            ):
+                cmap = {
+                    'not-tested': [],
+                    'failed': [],
+                    'success': [],
+                }
+
+                for line in file2.readlines():
+                    file1.write(line)
+                    credential = line.strip().split(',')
+                    cmap[credential[2]].append(credential)
+                
+                CREDENTIALS['spotify'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+
+            for item in self.spotify_tree.get_children():
+                self.spotify_tree.delete(item)        
+
+            for (cid, secret, state, *_) in CREDENTIALS['spotify']:
+                self.spotify_tree.insert("", "end", values=(cid, secret), tags=(state,))
+                self.spotify_id_entry.delete(0, "end")
+                self.spotify_secret_entry.delete(0, "end")
+
+
+    def import_youtube_credential(self):
+        file_path = filedialog.askopenfilename(
+            initialdir=os.path.expanduser("~"),
+            filetypes=[("CSV File", ('*.csv'))],
+            title="Select File to Import Youtube Credentials"
+        )
+
+        if file_path:
+            with (
+                open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file1,
+                open(file_path, 'r') as file2
+            ):
+                cmap = {
+                    'not-tested': [],
+                    'failed': [],
+                    'success': [],
+                }
+
+                for line in file2.readlines():
+                    file1.write(line)
+                    credential = line.strip().split(',')
+                    cmap[credential[1]].append(credential)
+                
+                CREDENTIALS['youtube'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+
+            for item in self.youtube_tree.get_children():
+                self.youtube_tree.delete(item)        
+
+            for (api_key, state, *_) in CREDENTIALS['youtube']:
+                self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
+                self.youtube_key_entry.delete(0, "end")
+
 def main():
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
