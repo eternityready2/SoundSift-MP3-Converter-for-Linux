@@ -1,5 +1,15 @@
-soundsift (1.0.29) stable; urgency=low
+soundsift (1.0.44) stable; urgency=low
 
-  * add credentials
+  * merging of past code code
+  * logs (terminal and file)
+  * api pool (youtube and spotify)
+  * change of api keys when one fails
+  * create/update/delete/import/export of credentials
+  * export of logs
+  * spotify auth caching in differnet folders
+  * double click link to see failed or success message
+  * tested with longest spotify playlist 10,000 tracks
+  * new postinst dependencies
+  * new build dependencies
 
- -- sivefunc <sivefunc@tuta.io>  Tue, 23 Sep 2025 11:45:00 +0200
+ -- sivefunc <sivefunc@tuta.io>  Thu, 24 Sep 2025 18:40:00 +0200
