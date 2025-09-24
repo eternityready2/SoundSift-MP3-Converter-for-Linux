@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import ttk, PhotoImage, messagebox
+from tkinter import ttk, PhotoImage, messagebox, filedialog
 import threading
 import logging
 import logging.config
@@ -188,6 +188,9 @@ class App(ctk.CTk):
         self.spotify_delete_button = ctk.CTkButton(self.spotify_frame, text="Delete Row", command=self.delete_spotify_row)
         self.spotify_delete_button.pack(fill="x", padx=5, pady=(2, 10))
 
+        self.spotify_export_button = ctk.CTkButton(self.spotify_frame, text="Export Spotify Credential", command=self.export_spotify_credential)
+        self.spotify_export_button.pack(fill="x", padx=5, pady=(0, 10))
+
         # --- YouTube Frame ---
         self.youtube_frame = ctk.CTkFrame(self.api_frame)
         self.youtube_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
@@ -234,6 +237,9 @@ class App(ctk.CTk):
 
         self.youtube_delete_button = ctk.CTkButton(self.youtube_frame, text="Delete Row", command=self.delete_youtube_row)
         self.youtube_delete_button.pack(fill="x", padx=5, pady=(2, 10))
+
+        self.youtube_export_button = ctk.CTkButton(self.youtube_frame, text="Export Credential YouTube", command=self.export_youtube_credential)
+        self.youtube_export_button.pack(fill="x", padx=5, pady=(0, 10))
 
         # ======= Tag Styles for Coloring =======
         self.spotify_tree.tag_configure("success", background="#d4fcd4")     # Green
@@ -452,6 +458,27 @@ class App(ctk.CTk):
             message=message,
         )
 
+    def export_spotify_credential(self):
+        folder_path = filedialog.askdirectory(
+            initialdir=os.path.expanduser("~"),
+            title="Select Folder to Export Spotify Credentials"
+        )
+        if folder_path:
+            self.logger.info("Exporting spotify credentials...")
+            with open(os.path.join(folder_path, 'spotify-credentials.csv'), 'w') as file:
+                for credential in CREDENTIALS['spotify']:
+                    file.write(','.join(credential) + '\n')
+
+    def export_youtube_credential(self):
+        folder_path = filedialog.askdirectory(
+            initialdir=os.path.expanduser("~"),
+            title="Select Folder to Export YouTube Credentials",
+        )
+        if folder_path:
+            self.logger.info("Exporting youtube credentials...")
+            with open(os.path.join(folder_path, 'youtube-credentials.csv'), 'w') as file:
+                for credential in CREDENTIALS['youtube']:
+                    file.write(','.join(credential) + '\n')
 def main():
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
