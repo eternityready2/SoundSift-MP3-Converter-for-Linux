@@ -40,7 +40,7 @@ class App(ctk.CTk):
         super().__init__()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.title("SoundSift")
-        self.geometry("900x625")
+        self.geometry("900x650")
         self.storage = DataStorage()
 
         self.logger = logging.getLogger(__name__)
@@ -266,6 +266,16 @@ class App(ctk.CTk):
         for (api_key, state, *_) in CREDENTIALS['youtube']:
             self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
             self.youtube_key_entry.delete(0, "end")
+
+        self.export_logs_frame = ctk.CTkFrame(self.api_frame)
+        self.export_logs_frame.grid(row=5, column=0, columnspan=2, sticky="ew", padx=10, pady=(0, 10))
+
+        self.export_logs_frame.grid_columnconfigure(0, weight=1)
+        self.export_logs_frame.grid_columnconfigure(1, weight=0)
+        self.export_logs_frame.grid_columnconfigure(2, weight=1)
+
+        self.export_logs_button = ctk.CTkButton(self.export_logs_frame, text="Export Logs", command=self.export_logs)
+        self.export_logs_button.grid(row=0, column=1)
 
     def resize_buttons(self, event):
         window_width = self.winfo_width()
@@ -553,6 +563,27 @@ class App(ctk.CTk):
             for (api_key, state, *_) in CREDENTIALS['youtube']:
                 self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
                 self.youtube_key_entry.delete(0, "end")
+
+    def export_logs(self):
+        folder_path = filedialog.askdirectory(
+            initialdir=os.path.expanduser("~"),
+            title="Select Folder to Export Logs"
+        )
+        if folder_path:
+            self.logger.info("Exporting Logs...")
+
+            with (
+                open(os.path.join(folder_path, 'soundsift.log'), 'w') as file1,
+                open(LOGS_PATH, 'r') as file2
+            ):
+                cmap = {
+                    'not-tested': [],
+                    'failed': [],
+                    'success': [],
+                }
+
+                for line in file2.readlines():
+                    file1.write(line)
 
 def main():
     ctk.set_appearance_mode("System")
