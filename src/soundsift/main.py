@@ -12,7 +12,8 @@ from soundsift.config import (
     CREDENTIALS,
     CREDENTIALS_PATH,
     LOGGER_CONFIG_PATH,
-    LOGS_PATH
+    LOGS_PATH,
+    SRC_PATH,
 )
 
 class DataStorage:
@@ -39,11 +40,12 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.logger = logging.getLogger(__name__)
+        self.read_credentials()
         self.title("SoundSift")
         self.geometry("900x650")
         self.storage = DataStorage()
 
-        self.logger = logging.getLogger(__name__)
 
         # Set window icon using PNG
         icon_path = "/usr/share/icons/hicolor/256x256/apps/soundsift.png"
@@ -617,6 +619,75 @@ class App(ctk.CTk):
             except Exception as error:
                 self.logger.error(error)
 
+    def read_credentials(self):
+        try:
+            try:
+                with open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'r') as file:
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
+
+                    for line in file.readlines():
+                        credential = line.strip().split(',')
+                        cmap[credential[2]].append(credential)
+                        
+                    CREDENTIALS['spotify'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+
+            except FileNotFoundError:
+                with (
+                    open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file1,
+                    open(SRC_PATH / 'spotify-credentials.csv', 'r') as file2
+                ):
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
+
+                    for line in file2.readlines():
+                        file1.write(line)
+                        credential = line.strip().split(',')
+                        cmap[credential[2]].append(credential)
+                        
+                    CREDENTIALS['spotify'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+
+            try:
+                with open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'r') as file:
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
+
+                    for line in file.readlines():
+                        credential = line.strip().split(',')
+                        cmap[credential[1]].append(credential)
+
+                    CREDENTIALS['youtube'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+
+            except FileNotFoundError:
+                with (
+                    open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file1,
+                    open(SRC_PATH / 'youtube-credentials.csv', 'r') as file2
+                ):
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
+
+                    for line in file2.readlines():
+                        file1.write(line)
+                        credential = line.strip().split(',')
+                        cmap[credential[1]].append(credential)
+                        
+                    CREDENTIALS['youtube'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+
+        except Exception as error:
+            self.logger.error(error)
+
 def main():
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
@@ -627,6 +698,8 @@ def main():
 
     logger_config['handlers']['file']['filename'] = LOGS_PATH
     logging.config.dictConfig(logger_config)
+
+
 
     app = App()
     app.mainloop()
