@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import ttk, PhotoImage
+from tkinter import ttk, PhotoImage, messagebox
 import threading
 import logging
 import logging.config
@@ -34,6 +34,7 @@ class DataStorage:
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.title("SoundSift")
         self.geometry("900x600")
         self.storage = DataStorage()
@@ -422,6 +423,16 @@ class App(ctk.CTk):
                 len(CREDENTIALS['youtube']) - 1
             ))
             self.youtube_tree.delete(item)
+
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            with open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file:
+                for credential in CREDENTIALS['spotify']:
+                    file.write(','.join(credential) + '\n')
+            with open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file:
+                for credential in CREDENTIALS['youtube']:
+                    file.write(','.join(credential) + '\n')
+            self.destroy()
 
 def main():
     ctk.set_appearance_mode("System")
