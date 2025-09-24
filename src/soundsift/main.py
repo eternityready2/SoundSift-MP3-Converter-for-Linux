@@ -35,7 +35,7 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("SoundSift")
-        self.geometry("600x400")
+        self.geometry("900x600")
         self.storage = DataStorage()
 
         self.logger = logging.getLogger(__name__)
@@ -55,9 +55,9 @@ class App(ctk.CTk):
         self.style.configure("Treeview", rowheight=25, borderwidth=1, relief="solid")
         self.style.configure("Custom.Horizontal.TProgressbar", troughcolor="white", background="#1E90FF")
 
-        # Treeview frame
+        # Treeview frame (Left side)
         self.tree_frame = ctk.CTkFrame(self)
-        self.tree_frame.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.tree_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         self.tree = ttk.Treeview(
             self.tree_frame, columns=("STATUS", "LINK"), show="headings", selectmode="browse"
@@ -78,18 +78,18 @@ class App(ctk.CTk):
             self, orient="horizontal", length=500, mode="determinate",
             variable=self.progress_var, style="Custom.Horizontal.TProgressbar"
         )
-        self.progress_bar.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
+        self.progress_bar.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
 
         # Input widgets
         self.link_label = ctk.CTkLabel(self, text="Enter or Update Link:")
-        self.link_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10, 0))
+        self.link_label.grid(row=2, column=0, sticky="w", padx=10, pady=(10, 0))
 
         self.link_entry = ctk.CTkEntry(self, placeholder_text="Enter or Update Link")
-        self.link_entry.grid(row=3, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
+        self.link_entry.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
 
         # Buttons frame
         button_frame = ctk.CTkFrame(self)
-        button_frame.grid(row=4, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
+        button_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
 
         self.add_button = ctk.CTkButton(button_frame, text="Add Row", command=self.add_row)
         self.add_button.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
@@ -103,13 +103,11 @@ class App(ctk.CTk):
         self.delete_button = ctk.CTkButton(button_frame, text="Delete Row", command=self.delete_row)
         self.delete_button.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
-        # Configure grid weights
-        self.grid_columnconfigure(0, weight=1)
+        # Configure grid weights on left side
+        self.grid_columnconfigure(0, weight=3)
         self.grid_rowconfigure(0, weight=1)
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
-
-        self.bind("<Configure>", self.resize_buttons)
 
         self.tree.tag_configure("evenrow", background="#f2f2f2")
         self.tree.tag_configure("oddrow", background="#ffffff")
@@ -119,8 +117,134 @@ class App(ctk.CTk):
         self.completed_steps = 0
         self.lock = threading.Lock()
 
-        # Dynamic download path for the logged-in user
+        # Dynamic download path
         self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        # ================= API FRAME (Right side) =================
+        self.api_frame = ctk.CTkFrame(self)
+        self.api_frame.grid(row=0, column=1, rowspan=5, sticky="nsew", padx=10, pady=10)
+        self.api_frame.grid_columnconfigure(0, weight=1)
+        self.api_frame.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(1, weight=2)
+
+        # --- Spotify Frame ---
+        self.spotify_frame = ctk.CTkFrame(self.api_frame)
+        self.spotify_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        self.spotify_label = ctk.CTkLabel(self.spotify_frame, text="Spotify Credentials")
+        self.spotify_label.pack(pady=(5, 5))
+
+        spotify_tree_frame = ctk.CTkFrame(self.spotify_frame)
+        spotify_tree_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+        self.spotify_tree = ttk.Treeview(
+            spotify_tree_frame,
+            columns=("CLIENT_ID", "CLIENT_SECRET"),
+            show="headings"
+        )
+        self.spotify_tree.heading("CLIENT_ID", text="CLIENT_ID")
+        self.spotify_tree.heading("CLIENT_SECRET", text="CLIENT_SECRET")
+        self.spotify_tree.column("CLIENT_ID", width=100, anchor="w")
+        self.spotify_tree.column("CLIENT_SECRET", width=100, anchor="w")
+        self.spotify_tree.grid(row=0, column=0, sticky="nsew")
+
+        spotify_vsb = ttk.Scrollbar(spotify_tree_frame, orient="vertical", command=self.spotify_tree.yview)
+        spotify_hsb = ttk.Scrollbar(spotify_tree_frame, orient="horizontal", command=self.spotify_tree.xview)
+        self.spotify_tree.configure(yscrollcommand=spotify_vsb.set, xscrollcommand=spotify_hsb.set)
+        spotify_vsb.grid(row=0, column=1, sticky="ns")
+        spotify_hsb.grid(row=1, column=0, sticky="ew")
+
+        spotify_tree_frame.grid_rowconfigure(0, weight=1)
+        spotify_tree_frame.grid_columnconfigure(0, weight=1)
+
+        self.spotify_input_frame = ctk.CTkFrame(self.spotify_frame)
+        self.spotify_input_frame.pack(fill="x", padx=5, pady=(5, 10))
+
+        self.spotify_id_label = ctk.CTkLabel(self.spotify_input_frame, text="CLIENT_ID:")
+        self.spotify_id_label.grid(row=0, column=0, sticky="w", padx=(0, 5), pady=(0, 2))
+        self.spotify_id_entry = ctk.CTkEntry(self.spotify_input_frame, placeholder_text="CLIENT_ID")
+        self.spotify_id_entry.grid(row=0, column=1, sticky="ew", pady=(0, 2))
+
+        self.spotify_secret_label = ctk.CTkLabel(self.spotify_input_frame, text="CLIENT_SECRET:")
+        self.spotify_secret_label.grid(row=1, column=0, sticky="w", padx=(0, 5), pady=(0, 2))
+        self.spotify_secret_entry = ctk.CTkEntry(self.spotify_input_frame, placeholder_text="CLIENT_SECRET")
+        self.spotify_secret_entry.grid(row=1, column=1, sticky="ew", pady=(0, 2))
+
+        self.spotify_input_frame.grid_columnconfigure(1, weight=1)
+
+        self.spotify_add_button = ctk.CTkButton(self.spotify_frame, text="Add Row", command=self.add_spotify_row)
+        self.spotify_add_button.pack(fill="x", padx=5, pady=2)
+
+        self.spotify_update_button = ctk.CTkButton(self.spotify_frame, text="Update Row", command=self.update_spotify_row)
+        self.spotify_update_button.pack(fill="x", padx=5, pady=2)
+
+        self.spotify_delete_button = ctk.CTkButton(self.spotify_frame, text="Delete Row", command=self.delete_spotify_row)
+        self.spotify_delete_button.pack(fill="x", padx=5, pady=(2, 10))
+
+        # --- YouTube Frame ---
+        self.youtube_frame = ctk.CTkFrame(self.api_frame)
+        self.youtube_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        self.youtube_label = ctk.CTkLabel(self.youtube_frame, text="YouTube Credentials")
+        self.youtube_label.pack(pady=(5, 5))
+
+        youtube_tree_frame = ctk.CTkFrame(self.youtube_frame)
+        youtube_tree_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+        self.youtube_tree = ttk.Treeview(
+            youtube_tree_frame,
+            columns=("API_KEY",),
+            show="headings"
+        )
+        self.youtube_tree.heading("API_KEY", text="API_KEY")
+        self.youtube_tree.column("API_KEY", width=150, anchor="w")
+        self.youtube_tree.grid(row=0, column=0, sticky="nsew")
+
+        youtube_vsb = ttk.Scrollbar(youtube_tree_frame, orient="vertical", command=self.youtube_tree.yview)
+        youtube_hsb = ttk.Scrollbar(youtube_tree_frame, orient="horizontal", command=self.youtube_tree.xview)
+        self.youtube_tree.configure(yscrollcommand=youtube_vsb.set, xscrollcommand=youtube_hsb.set)
+        youtube_vsb.grid(row=0, column=1, sticky="ns")
+        youtube_hsb.grid(row=1, column=0, sticky="ew")
+
+        youtube_tree_frame.grid_rowconfigure(0, weight=1)
+        youtube_tree_frame.grid_columnconfigure(0, weight=1)
+
+        self.youtube_input_frame = ctk.CTkFrame(self.youtube_frame)
+        self.youtube_input_frame.pack(fill="x", padx=5, pady=(5, 10))
+
+        self.youtube_key_label = ctk.CTkLabel(self.youtube_input_frame, text="API_KEY:")
+        self.youtube_key_label.grid(row=0, column=0, sticky="w", padx=(0, 5), pady=(0, 2))
+        self.youtube_key_entry = ctk.CTkEntry(self.youtube_input_frame, placeholder_text="API_KEY")
+        self.youtube_key_entry.grid(row=0, column=1, sticky="ew", pady=(0, 2))
+
+        self.youtube_input_frame.grid_columnconfigure(1, weight=1)
+
+        self.youtube_add_button = ctk.CTkButton(self.youtube_frame, text="Add Row", command=self.add_youtube_row)
+        self.youtube_add_button.pack(fill="x", padx=5, pady=2)
+
+        self.youtube_update_button = ctk.CTkButton(self.youtube_frame, text="Update Row", command=self.update_youtube_row)
+        self.youtube_update_button.pack(fill="x", padx=5, pady=2)
+
+        self.youtube_delete_button = ctk.CTkButton(self.youtube_frame, text="Delete Row", command=self.delete_youtube_row)
+        self.youtube_delete_button.pack(fill="x", padx=5, pady=(2, 10))
+
+        # ======= Tag Styles for Coloring =======
+        self.spotify_tree.tag_configure("success", background="#d4fcd4")     # Green
+        self.spotify_tree.tag_configure("failed", background="#f79999")      # Red
+        self.spotify_tree.tag_configure("not-tested", background="#eaeaea")  # Light gray
+        self.youtube_tree.tag_configure("success", background="#d4fcd4")
+        self.youtube_tree.tag_configure("failed", background="#f79999")
+        self.youtube_tree.tag_configure("not-tested", background="#eaeaea")
+
+        # Populate credential trees with color tags according to state
+        for (cid, secret, state, *_) in CREDENTIALS['spotify']:
+            self.spotify_tree.insert("", "end", values=(cid, secret), tags=(state,))
+            self.spotify_id_entry.delete(0, "end")
+            self.spotify_secret_entry.delete(0, "end")
+
+        for (api_key, state, *_) in CREDENTIALS['youtube']:
+            self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
+            self.youtube_key_entry.delete(0, "end")
 
     def resize_buttons(self, event):
         window_width = self.winfo_width()
@@ -233,6 +357,71 @@ class App(ctk.CTk):
                 self.tree.delete(item)
                 self.storage.delete_data(index)
                 self.logger.info(f"Deleted link: {link}")
+
+    # --- Spotify Methods ---
+    def add_spotify_row(self):
+        cid = self.spotify_id_entry.get()
+        secret = self.spotify_secret_entry.get()
+        if cid and secret:
+            self.spotify_tree.insert("", 0, values=(cid, secret), tags=("not-tested",))
+            self.spotify_id_entry.delete(0, "end")
+            self.spotify_secret_entry.delete(0, "end")
+            CREDENTIALS['spotify'].insert(0, [cid, secret, 'not-tested'])
+
+    def update_spotify_row(self):
+        selected = self.spotify_tree.selection()
+        cid = self.spotify_id_entry.get()
+        secret = self.spotify_secret_entry.get()
+        if selected and (cid or secret):
+            for item in selected:
+                current = self.spotify_tree.item(item, "values")
+                new_cid = cid if cid else current[0]
+                new_secret = secret if secret else current[1]
+
+                idx = self.spotify_tree.index(item)
+                CREDENTIALS['spotify'][idx] = [new_cid, new_secret, "not-tested"]
+
+                self.spotify_tree.item(item, values=(new_cid, new_secret), tags=("not-tested",))
+            self.spotify_id_entry.delete(0, "end")
+            self.spotify_secret_entry.delete(0, "end")
+
+    def delete_spotify_row(self):
+        selected = self.spotify_tree.selection()
+        for item in selected:
+            idx = self.spotify_tree.index(item)
+            CREDENTIALS['spotify'].pop(min(
+                idx,
+                len(CREDENTIALS['spotify']) - 1
+            ))
+            self.spotify_tree.delete(item)
+
+    # --- YouTube Methods ---
+    def add_youtube_row(self):
+        api_key = self.youtube_key_entry.get()
+        if api_key:
+            self.youtube_tree.insert("", 0, values=(api_key,), tags=("not-tested",))
+            self.youtube_key_entry.delete(0, "end")
+            CREDENTIALS['youtube'].insert(0, [api_key, 'not-tested'])
+
+    def update_youtube_row(self):
+        selected = self.youtube_tree.selection()
+        key = self.youtube_key_entry.get()
+        if selected and key:
+            for item in selected:
+                idx = self.youtube_tree.index(item)
+                CREDENTIALS['youtube'][idx] = [key, "not-tested"]
+                self.youtube_tree.item(item, values=(key,), tags=("not-tested",))
+            self.youtube_key_entry.delete(0, "end")
+
+    def delete_youtube_row(self):
+        selected = self.youtube_tree.selection()
+        for item in selected:
+            idx = self.youtube_tree.index(item)
+            CREDENTIALS['youtube'].pop(min(
+                idx,
+                len(CREDENTIALS['youtube']) - 1
+            ))
+            self.youtube_tree.delete(item)
 
 def main():
     ctk.set_appearance_mode("System")
