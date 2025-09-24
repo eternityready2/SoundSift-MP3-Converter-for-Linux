@@ -32,9 +32,13 @@ class SpotifyDownloader:
 
     @classmethod
     def authenticate_spotify(cls, client_id, client_secret):
+        cache_handler = spotipy.cache_handler.CacheFileHandler(
+            username=f"{client_id}-{client_secret}"
+        )
         credentials = SpotifyClientCredentials(
             client_id=client_id,
-            client_secret=client_secret
+            client_secret=client_secret,
+            cache_handler=cache_handler,
         )
         return spotipy.Spotify(client_credentials_manager=credentials)
 
@@ -117,7 +121,7 @@ class SpotifyDownloader:
             return metadata
         except Exception as e:
             logger.error(f"Error fetching metadata for track {track_id}: {e}")
-            return None
+            raise e
 
     @classmethod
     def fetch_playlist_or_album_tracks(cls, sp, link_type, item_id):
@@ -214,6 +218,7 @@ class SpotifyDownloader:
                         logger.info(f"CLIENT_ID = {client_id}")
                         logger.info(f"CLIENT_SECRET = {client_secret}")
 
+                        sp = cls.authenticate_spotify(client_id, client_secret)
                         metadata = cls.fetch_track_metadata(sp, track_id) if track_id else {
                             "title": track.get("name"),
                             "artist": track.get("artist"),
