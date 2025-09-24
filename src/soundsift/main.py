@@ -482,6 +482,9 @@ class App(ctk.CTk):
             title="Select Folder to Export Spotify Credentials"
         )
         if folder_path:
+            if folder_path == os.path.join(folder_path, 'spotify-credentials.csv'):
+                return
+
             try:
                 self.logger.info("Exporting spotify credentials...")
                 with open(os.path.join(folder_path, 'spotify-credentials.csv'), 'w') as file:
@@ -496,6 +499,9 @@ class App(ctk.CTk):
             title="Select Folder to Export YouTube Credentials",
         )
         if folder_path:
+            if folder_path == os.path.join(folder_path, 'youtube-credentials.csv'):
+                return
+
             try:
                 self.logger.info("Exporting youtube credentials...")
                 with open(os.path.join(folder_path, 'youtube-credentials.csv'), 'w') as file:
@@ -512,6 +518,10 @@ class App(ctk.CTk):
         )
 
         if file_path:
+
+            if file_path == CREDENTIALS_PATH / 'spotify-credentials.csv':
+                return
+
             try:
                 with (
                     open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file1,
@@ -549,6 +559,9 @@ class App(ctk.CTk):
         )
 
         if file_path:
+            if file_path == CREDENTIALS_PATH / 'youtube-credentials.csv':
+                return
+
             try:
                 with (
                     open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file1,
@@ -583,6 +596,9 @@ class App(ctk.CTk):
         )
         if folder_path:
             self.logger.info("Exporting Logs...")
+
+            if os.path.join(folder_path, 'soundsift.log') == LOGS_PATH:
+                return
 
             try:
                 with (
