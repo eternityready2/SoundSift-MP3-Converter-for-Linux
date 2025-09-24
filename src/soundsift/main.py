@@ -19,17 +19,21 @@ class DataStorage:
     def __init__(self):
         self.data = []
 
-    def add_data(self, status, link):
-        self.data.append((status, link))
+    def add_data(self, status, link, message):
+        self.data.append((status, link, message))
 
     def delete_data(self, index):
         if 0 <= index < len(self.data):
             self.data.pop(index)
 
-    def update_data(self, index, status=None, link=None):
+    def update_data(self, index, status=None, link=None, message=None):
         if 0 <= index < len(self.data):
-            current_status, current_link = self.data[index]
-            self.data[index] = (status or current_status, link or current_link)
+            current_status, current_link, current_message = self.data[index]
+            self.data[index] = (
+                status or current_status,
+                link or current_link,
+                message or current_message,
+            )
 
 class App(ctk.CTk):
     def __init__(self):
@@ -63,6 +67,8 @@ class App(ctk.CTk):
         self.tree = ttk.Treeview(
             self.tree_frame, columns=("STATUS", "LINK"), show="headings", selectmode="browse"
         )
+
+        self.tree.bind("<Double-1>", self.on_double_click)
         self.tree.heading("STATUS", text="STATUS")
         self.tree.heading("LINK", text="LINK")
         self.tree.column("STATUS", width=100, anchor="center")
@@ -260,7 +266,7 @@ class App(ctk.CTk):
         if link:
             tag = "evenrow" if len(self.tree.get_children()) % 2 == 0 else "oddrow"
             self.tree.insert("", "end", values=("NEW", link), tags=(tag,))
-            self.storage.add_data("NEW", link)
+            self.storage.add_data("NEW", link, "")
             self.link_entry.delete(0, "end")
             self.logger.info(f"Added link: {link}")
 
@@ -317,7 +323,7 @@ class App(ctk.CTk):
             item = item_map[link]
             index = self.tree.index(item)
             self.after(0, lambda i=item: self.tree.item(i, values=("Processing", self.tree.item(i, "values")[1])))
-            self.storage.update_data(index, status="Processing")
+            self.storage.update_data(index, status="Processing", message="")
             threading.Thread(target=self.download_link, args=(item, link, index), daemon=True).start()
 
         self.update_progress()
@@ -331,7 +337,7 @@ class App(ctk.CTk):
         status, message = MusicDownloader.download_music(link, output_path=self.download_path, callback=callback)
         callback("end_link")
         self.after(0, lambda: self.tree.item(item, values=(status, link)))
-        self.storage.update_data(index, status=status)
+        self.storage.update_data(index, status=status, message=message)
         if status == "Success":
             self.logger.info(f"Downloaded {link}: {message}")
         else:
@@ -345,7 +351,7 @@ class App(ctk.CTk):
                 for item in selected_item:
                     self.tree.item(item, values=(self.tree.item(item, "values")[0], link))
                     index = self.tree.index(item)
-                    self.storage.update_data(index, link=link)
+                    self.storage.update_data(index, link=link, message="")
                 self.link_entry.delete(0, "end")
                 self.logger.info(f"Updated link to: {link}")
 
@@ -433,6 +439,18 @@ class App(ctk.CTk):
                 for credential in CREDENTIALS['youtube']:
                     file.write(','.join(credential) + '\n')
             self.destroy()
+
+    def on_double_click(self, event):
+        selected_item = self.tree.focus()
+        if not selected_item:
+            return
+
+        index = self.tree.index(selected_item)
+        status, link, message = self.storage.data[index]
+        messagebox.showinfo(
+            title=link,
+            message=message,
+        )
 
 def main():
     ctk.set_appearance_mode("System")
