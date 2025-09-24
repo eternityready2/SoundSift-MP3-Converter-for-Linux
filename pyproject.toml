@@ -15,14 +15,26 @@ readme = {file = 'README.md', content-type='text/markdown', charset="UTF-8", var
 requires-python = ">=3.11"
 
 dependencies = [
+  "certifi",
+  "charset-normalizer",
+  "ommonmark",
   "customtkinter",
+  "darkdetect",
+  "et_xmlfile",
+  "idna",
+  "mutagen",
   "openpyxl",
+  "packaging",
+  "Pygments",
+  "python-dotenv",
+  "redis",
   "requests",
+  "rich",
+  "sentry-sdk",
   "spotify_dl",
   "spotipy",
-  "yt_dlp",
-  "python-dotenv",
-  "mutagen",
+  "urllib3",
+  "yt-dlp",
 ]
 
 [project.optional-dependencies]

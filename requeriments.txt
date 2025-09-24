@@ -1,0 +1,21 @@
+certifi==2025.8.3
+charset-normalizer==3.4.3
+commonmark==0.9.1
+customtkinter==5.2.2
+darkdetect==0.8.0
+et_xmlfile==2.0.0
+idna==3.10
+mutagen==1.47.0
+openpyxl==3.1.5
+packaging==25.0
+Pygments==2.19.2
+python-dotenv==1.1.1
+redis==6.4.0
+requests==2.32.5
+rich==12.6.0
+sentry-sdk==1.45.1
+-e git+https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux@75f20377478aed7caacbab481095f4c56e011327#egg=soundsift
+spotify_dl==8.9.0
+spotipy==2.25.1
+urllib3==1.26.20
+yt-dlp==2025.9.23
