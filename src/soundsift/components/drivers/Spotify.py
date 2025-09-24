@@ -206,6 +206,7 @@ class SpotifyDownloader:
 
             downloaded_files = []
 
+            logger.info(f"Sucessfully fetched tracks, now for each track fetch their metadata...")
             for track in tracks:
                 track_id = track.get("track_id")
                 if not track_id and link_type == "track":
