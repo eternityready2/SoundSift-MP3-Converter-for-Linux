@@ -66,7 +66,7 @@ class MusicDownloader:
                         return len(album['tracks']['items'])
                     return 0
 
-                except spotipy.SpotifyException as e:
+                except spotipy.SpotifyBaseException as e:
                     if sp_idx == len(CREDENTIALS['spotify']) - 1:
                         logger.error(f"Spotify API count error: {e}, this was the last key.")
                         CREDENTIALS['spotify'][sp_idx][2] = "failed"

@@ -186,7 +186,7 @@ class SpotifyDownloader:
                         CREDENTIALS['spotify'][sp_idx][2] = "success"
                         break
 
-                    except spotipy.SpotifyException as e:
+                    except spotipy.SpotifyBaseException as e:
                         if sp_idx == len(CREDENTIALS['spotify']) - 1:
                             logger.error(f"Spotify API error: {e}, this is the last key, exiting download")
                             CREDENTIALS['spotify'][sp_idx][2] = "failed"
@@ -222,8 +222,9 @@ class SpotifyDownloader:
                             "thumbnail": None
                         }
                         CREDENTIALS['spotify'][sp_idx][2] = "success"
+                        break
 
-                    except spotipy.SpotifyException as e:
+                    except spotipy.SpotifyBaseException as e:
                         if sp_idx == len(CREDENTIALS['spotify']) - 1:
                             logger.error(f"Spotify API error: {e}, this is the last key, exiting download")
                             CREDENTIALS['spotify'][sp_idx][2] = "failed"
