@@ -482,10 +482,13 @@ class App(ctk.CTk):
             title="Select Folder to Export Spotify Credentials"
         )
         if folder_path:
-            self.logger.info("Exporting spotify credentials...")
-            with open(os.path.join(folder_path, 'spotify-credentials.csv'), 'w') as file:
-                for credential in CREDENTIALS['spotify']:
-                    file.write(','.join(credential) + '\n')
+            try:
+                self.logger.info("Exporting spotify credentials...")
+                with open(os.path.join(folder_path, 'spotify-credentials.csv'), 'w') as file:
+                    for credential in CREDENTIALS['spotify']:
+                        file.write(','.join(credential) + '\n')
+            except Exception as error:
+                self.logger.error(error)
 
     def export_youtube_credential(self):
         folder_path = filedialog.askdirectory(
@@ -493,10 +496,13 @@ class App(ctk.CTk):
             title="Select Folder to Export YouTube Credentials",
         )
         if folder_path:
-            self.logger.info("Exporting youtube credentials...")
-            with open(os.path.join(folder_path, 'youtube-credentials.csv'), 'w') as file:
-                for credential in CREDENTIALS['youtube']:
-                    file.write(','.join(credential) + '\n')
+            try:
+                self.logger.info("Exporting youtube credentials...")
+                with open(os.path.join(folder_path, 'youtube-credentials.csv'), 'w') as file:
+                    for credential in CREDENTIALS['youtube']:
+                        file.write(','.join(credential) + '\n')
+            except Exception as error:
+                self.logger.error(error)
 
     def import_spotify_credential(self):
         file_path = filedialog.askopenfilename(
@@ -506,31 +512,34 @@ class App(ctk.CTk):
         )
 
         if file_path:
-            with (
-                open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file1,
-                open(file_path, 'r') as file2
-            ):
-                cmap = {
-                    'not-tested': [],
-                    'failed': [],
-                    'success': [],
-                }
+            try:
+                with (
+                    open(CREDENTIALS_PATH / 'spotify-credentials.csv', 'w') as file1,
+                    open(file_path, 'r') as file2
+                ):
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
 
-                for line in file2.readlines():
-                    file1.write(line)
-                    credential = line.strip().split(',')
-                    cmap[credential[2]].append(credential)
-                
-                CREDENTIALS['spotify'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+                    for line in file2.readlines():
+                        file1.write(line)
+                        credential = line.strip().split(',')
+                        cmap[credential[2]].append(credential)
+                    
+                    CREDENTIALS['spotify'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
 
-            for item in self.spotify_tree.get_children():
-                self.spotify_tree.delete(item)        
+                for item in self.spotify_tree.get_children():
+                    self.spotify_tree.delete(item)        
 
-            for (cid, secret, state, *_) in CREDENTIALS['spotify']:
-                self.spotify_tree.insert("", "end", values=(cid, secret), tags=(state,))
-                self.spotify_id_entry.delete(0, "end")
-                self.spotify_secret_entry.delete(0, "end")
-
+                for (cid, secret, state, *_) in CREDENTIALS['spotify']:
+                    self.spotify_tree.insert("", "end", values=(cid, secret), tags=(state,))
+                    self.spotify_id_entry.delete(0, "end")
+                    self.spotify_secret_entry.delete(0, "end")
+            
+            except Exception as error:
+                self.logger.error(error)
 
     def import_youtube_credential(self):
         file_path = filedialog.askopenfilename(
@@ -540,29 +549,32 @@ class App(ctk.CTk):
         )
 
         if file_path:
-            with (
-                open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file1,
-                open(file_path, 'r') as file2
-            ):
-                cmap = {
-                    'not-tested': [],
-                    'failed': [],
-                    'success': [],
-                }
+            try:
+                with (
+                    open(CREDENTIALS_PATH / 'youtube-credentials.csv', 'w') as file1,
+                    open(file_path, 'r') as file2
+                ):
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
 
-                for line in file2.readlines():
-                    file1.write(line)
-                    credential = line.strip().split(',')
-                    cmap[credential[1]].append(credential)
-                
-                CREDENTIALS['youtube'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
+                    for line in file2.readlines():
+                        file1.write(line)
+                        credential = line.strip().split(',')
+                        cmap[credential[1]].append(credential)
+                    
+                    CREDENTIALS['youtube'] = cmap['not-tested'] + cmap['success'] + cmap['failed']
 
-            for item in self.youtube_tree.get_children():
-                self.youtube_tree.delete(item)        
+                for item in self.youtube_tree.get_children():
+                    self.youtube_tree.delete(item)        
 
-            for (api_key, state, *_) in CREDENTIALS['youtube']:
-                self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
-                self.youtube_key_entry.delete(0, "end")
+                for (api_key, state, *_) in CREDENTIALS['youtube']:
+                    self.youtube_tree.insert("", "end", values=(api_key,), tags=(state,))
+                    self.youtube_key_entry.delete(0, "end")
+            except Exception as error:
+                self.logger.error(error)
 
     def export_logs(self):
         folder_path = filedialog.askdirectory(
@@ -572,18 +584,22 @@ class App(ctk.CTk):
         if folder_path:
             self.logger.info("Exporting Logs...")
 
-            with (
-                open(os.path.join(folder_path, 'soundsift.log'), 'w') as file1,
-                open(LOGS_PATH, 'r') as file2
-            ):
-                cmap = {
-                    'not-tested': [],
-                    'failed': [],
-                    'success': [],
-                }
+            try:
+                with (
+                    open(os.path.join(folder_path, 'soundsift.log'), 'w') as file1,
+                    open(LOGS_PATH, 'r') as file2
+                ):
+                    cmap = {
+                        'not-tested': [],
+                        'failed': [],
+                        'success': [],
+                    }
 
-                for line in file2.readlines():
-                    file1.write(line)
+                    for line in file2.readlines():
+                        file1.write(line)
+
+            except Exception as error:
+                self.logger.error(error)
 
 def main():
     ctk.set_appearance_mode("System")
