@@ -3,7 +3,7 @@ echo "Post install script is running now"
 pip install --ignore-installed --break-system-packages \
     certifi \
     charset-normalizer \
-    ommonmark \
+    commonmark \
     customtkinter \
     darkdetect \
     et_xmlfile \

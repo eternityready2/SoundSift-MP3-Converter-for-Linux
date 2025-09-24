@@ -1,9 +1,9 @@
 Package: soundsift
-Version: 1.0.29
+Version: 1.0.44
 Architecture: amd64
 Maintainer: sivefunc <sivefunc@tuta.io>
-Installed-Size: 175
-Depends: python3:any, python3, python3-pip, python3-tk, python3-requests, python3-packaging
+Installed-Size: 205
+Depends: python3:any, python3, python3-pip, python3-tk, python3-requests, python3-packaging, ffmpeg
 Section: python
 Priority: optional
 Homepage: https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux
