@@ -8,6 +8,7 @@ import requests
 from spotipy.oauth2 import SpotifyClientCredentials
 from soundsift.components.drivers.YouTube import Ytube
 from soundsift.components.drivers.archive import ArchiveManager
+from soundsift.config import CREDENTIALS
 from dotenv import load_dotenv
 
 
@@ -30,10 +31,10 @@ class SpotifyDownloader:
     ]
 
     @classmethod
-    def authenticate_spotify(cls):
+    def authenticate_spotify(cls, client_id, client_secret):
         credentials = SpotifyClientCredentials(
-            client_id=cls.SPOTIPY_CLIENT_ID,
-            client_secret=cls.SPOTIPY_CLIENT_SECRET
+            client_id=client_id,
+            client_secret=client_secret
         )
         return spotipy.Spotify(client_credentials_manager=credentials)
 
@@ -66,7 +67,7 @@ class SpotifyDownloader:
 
     @classmethod
     def get_youtube_url(cls, search_query):
-        for yt_idx, api_key in enumerate(cls.YOUTUBE_API_KEYS):
+        for yt_idx, (api_key, *_) in enumerate(CREDENTIALS['youtube']):
             search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={search_query}&key={api_key}&type=video"
             try:
                 response = requests.get(search_url, timeout=10)
@@ -75,25 +76,30 @@ class SpotifyDownloader:
 
                 if results:
                     youtube_url = f"https://www.youtube.com/watch?v={results[0]['id']['videoId']}"
-                    logger.info(f"Fetched YouTube URL with API key {yt_idx+1}/{len(cls.YOUTUBE_API_KEYS)}: {api_key[:8]}...")
+                    logger.info(f"Fetched YouTube URL with API key {yt_idx+1}/{len(CREDENTIALS['youtube'])}: {api_key[:8]}...")
+                    CREDENTIALS['youtube'][yt_idx][1] = "success"
                     return youtube_url
             except requests.HTTPError as e:
                 if e.response.status_code in {400, 403}:
-                    message = f"API key failed {yt_idx+1}/{len(cls.YOUTUBE_API_KEYS)}: {api_key[:8]}... {e.response.json()['error']['message'].strip(".")}"
-                    if yt_idx != len(cls.YOUTUBE_API_KEYS) - 1:
+                    message = f"API key failed {yt_idx+1}/{len(CREDENTIALS['youtube'])}: {api_key[:8]}... {e.response.json()['error']['message'].strip(".")}"
+                    if yt_idx != len(CREDENTIALS['youtube']) - 1:
                         message += ", trying next key..."
 
                     else:
                         message += ", this wast the last key..."
 
+                    CREDENTIALS['youtube'][yt_idx][1] = "failed"
                     logger.warning(message)
                     continue
                 logger.error(f"YouTube API error: {e}")
+                CREDENTIALS['youtube'][yt_idx][1] = "failed"
                 return None
             except requests.RequestException as e:
                 logger.error(f"YouTube API request failed: {e}")
                 return None
-        logger.error("All YT API keys failed, stop the downloading of tracks...")
+        logger.error(
+            "All YT API keys failed, stop the downloading of tracks..."
+        )
         raise ValueError("All YT API keys failed, stop the downloading of tracks...")
 
     @classmethod
@@ -115,7 +121,6 @@ class SpotifyDownloader:
 
     @classmethod
     def fetch_playlist_or_album_tracks(cls, sp, link_type, item_id):
-        logger = logging.getLogger("soundsift")
         tracks = []
         if link_type == "playlist":
             results = sp.playlist_tracks(item_id)
@@ -150,7 +155,6 @@ class SpotifyDownloader:
 
     @classmethod
     def download_spotify_tracks(cls, playlist_url, output_path, callback=None):
-        sp = cls.authenticate_spotify()
         link_type = cls.get_spotify_link_type(playlist_url)
         if link_type in ["unknown", "episode", "artist"]:
             logger.error(f"Unsupported Spotify link type: {link_type}")
@@ -159,19 +163,38 @@ class SpotifyDownloader:
         try:
             item_id = cls.extract_item_id(playlist_url)
             logger.info(f"Extracted {link_type} ID: {item_id}")
+
         except ValueError as e:
             logger.error(f"Invalid URL: {e}")
             return "Failed", str(e)
-
         try:
-            logger.info(f"Fetching {link_type} tracks from Spotify...")
             if link_type == "track":
                 tracks = [{"track_id": item_id, "url": playlist_url}]
                 temp_dir = output_path
+
             else:
                 temp_dir = os.path.join(output_path, f"{link_type}_{uuid.uuid4().hex}")
                 os.makedirs(temp_dir, exist_ok=True)
-                tracks = cls.fetch_playlist_or_album_tracks(sp, link_type, item_id)
+                for sp_idx, (client_id, client_secret, *_) in enumerate(CREDENTIALS['spotify']):
+                    try:
+                        logger.info(f"Fetching {link_type} tracks from Spotify...")
+                        logger.info(f"Spotify credential {sp_idx+1}/{len(CREDENTIALS['spotify'])}")
+                        logger.info(f"CLIENT_ID = {client_id}")
+                        logger.info(f"CLIENT_SECRET = {client_secret}")
+                        sp = cls.authenticate_spotify(client_id, client_secret)
+                        tracks = cls.fetch_playlist_or_album_tracks(sp, link_type, item_id)
+                        CREDENTIALS['spotify'][sp_idx][2] = "success"
+                        break
+
+                    except spotipy.SpotifyException as e:
+                        if sp_idx == len(CREDENTIALS['spotify']) - 1:
+                            logger.error(f"Spotify API error: {e}, this is the last key, exiting download")
+                            CREDENTIALS['spotify'][sp_idx][2] = "failed"
+                            return "Failed", str(e)
+
+                        logger.error(f"Spotify API error: {e}, changing to a new key of the pool...")
+                        CREDENTIALS['spotify'][sp_idx][2] = "failed"
+                        continue
 
             if not tracks:
                 logger.warning("No tracks found.")
@@ -184,13 +207,31 @@ class SpotifyDownloader:
                 if not track_id and link_type == "track":
                     track_id = item_id
 
-                metadata = cls.fetch_track_metadata(sp, track_id) if track_id else {
-                    "title": track.get("name"),
-                    "artist": track.get("artist"),
-                    "album": None,
-                    "date": None,
-                    "thumbnail": None
-                }
+                for sp_idx, (client_id, client_secret, *_) in enumerate(CREDENTIALS['spotify']):
+                    try:
+                        logger.info(f"Fetching track metadata from spotify...")
+                        logger.info(f"Spotify credential {sp_idx+1}/{len(CREDENTIALS['spotify'])}")
+                        logger.info(f"CLIENT_ID = {client_id}")
+                        logger.info(f"CLIENT_SECRET = {client_secret}")
+
+                        metadata = cls.fetch_track_metadata(sp, track_id) if track_id else {
+                            "title": track.get("name"),
+                            "artist": track.get("artist"),
+                            "album": None,
+                            "date": None,
+                            "thumbnail": None
+                        }
+                        CREDENTIALS['spotify'][sp_idx][2] = "success"
+
+                    except spotipy.SpotifyException as e:
+                        if sp_idx == len(CREDENTIALS['spotify']) - 1:
+                            logger.error(f"Spotify API error: {e}, this is the last key, exiting download")
+                            CREDENTIALS['spotify'][sp_idx][2] = "failed"
+                            return "Failed", str(e)
+
+                        logger.error(f"Spotify API error: {e}, changing to a new key of the pool...")
+                        CREDENTIALS['spotify'][sp_idx][2] = "failed"
+                        continue
 
                 query = f"{metadata['title']} {metadata['artist']}"
                 try:
@@ -221,9 +262,10 @@ class SpotifyDownloader:
                 else:
                     logger.error("Failed to create ZIP archive.")
             return "Success", "Download completed"
-        except spotipy.SpotifyException as e:
-            logger.error(f"Spotify API error: {e}")
-            return "Failed", str(e)
+
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             return "Failed", str(e)
+
+        logger.error(f"All spotify keys are not working, stopping download...")
+        return "Failed", "All Spotify Keys failed"

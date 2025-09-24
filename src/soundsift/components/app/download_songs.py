@@ -4,6 +4,7 @@ import shutil
 import os
 import yt_dlp
 import spotipy
+from soundsift.config import CREDENTIALS
 from soundsift.components.drivers.archive import ArchiveManager
 from soundsift.components.drivers.YouTube import Ytube
 from soundsift.components.drivers.Spotify import SpotifyDownloader
@@ -49,23 +50,38 @@ class MusicDownloader:
                     info = ydl.extract_info(url, download=False)
                     return len(info['entries']) if 'entries' in info else 0
             except Exception as e:
-                logging.getLogger("soundsift").error(f"Error fetching YouTube playlist length: {e}")
+                logger.error(f"Error fetching YouTube playlist length: {e}")
                 return 0
         elif source in ['spotify_album', 'spotify_playlist']:
-            try:
-                sp = SpotifyDownloader.authenticate_spotify()
-                link_type = SpotifyDownloader.get_spotify_link_type(url)
-                item_id = SpotifyDownloader.extract_item_id(url)
-                if link_type == "playlist":
-                    playlist = sp.playlist(item_id)
-                    return playlist['tracks']['total']
-                elif link_type == "album":
-                    album = sp.album(item_id)
-                    return len(album['tracks']['items'])
+            for sp_idx, (client_id, client_secret, *_) in enumerate(CREDENTIALS['spotify']):
+                try:
+                    sp = SpotifyDownloader.authenticate_spotify(client_id, client_secret)
+                    link_type = SpotifyDownloader.get_spotify_link_type(url)
+                    item_id = SpotifyDownloader.extract_item_id(url)
+                    if link_type == "playlist":
+                        playlist = sp.playlist(item_id)
+                        return playlist['tracks']['total']
+                    elif link_type == "album":
+                        album = sp.album(item_id)
+                        return len(album['tracks']['items'])
+                    return 0
+
+                except spotipy.SpotifyException as e:
+                    if sp_idx == len(CREDENTIALS['spotify']) - 1:
+                        logger.error(f"Spotify API count error: {e}, this was the last key.")
+                        CREDENTIALS['spotify'][sp_idx][2] = "failed"
+                        return 0
+
+                    logger.error(f"Spotify API count error: {e}, changing to a new key of the pool...")
+                    CREDENTIALS['spotify'][sp_idx][2] = "failed"
+                    continue
+
+                except Exception as e:
+                    logger.error(f"Error fetching Spotify count.")
+                    return 0
+
                 return 0
-            except Exception as e:
-                logging.getLogger("soundsift").error(f"Error fetching Spotify count: {e}")
-                return 0
+            return 0
         return 1  # Single items
 
     @classmethod
