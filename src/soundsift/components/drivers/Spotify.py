@@ -5,6 +5,7 @@ import uuid
 import shutil
 import spotipy
 import requests
+from requests.adapters import HTTPAdapter, Retry
 from spotipy.oauth2 import SpotifyClientCredentials
 from soundsift.components.drivers.YouTube import Ytube
 from soundsift.components.drivers.archive import ArchiveManager
@@ -70,11 +71,11 @@ class SpotifyDownloader:
         raise ValueError("Invalid Spotify URL.")
 
     @classmethod
-    def get_youtube_url(cls, search_query):
+    def get_youtube_url(cls, search_query, session):
         for yt_idx, (api_key, *_) in enumerate(CREDENTIALS['youtube']):
             search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={search_query}&key={api_key}&type=video"
             try:
-                response = requests.get(search_url, timeout=10)
+                response = session.get(search_url, timeout=10)
                 response.raise_for_status()
                 results = response.json().get('items', [])
 
@@ -156,7 +157,7 @@ class SpotifyDownloader:
                     "url": track["external_urls"]["spotify"]
                 })
         return tracks
-
+    
     @classmethod
     def download_spotify_tracks(cls, playlist_url, output_path, callback=None):
         link_type = cls.get_spotify_link_type(playlist_url)
@@ -241,10 +242,21 @@ class SpotifyDownloader:
                         continue
 
                 query = f"{metadata['title']} {metadata['artist']}"
-                try:
-                    youtube_url = cls.get_youtube_url(query)
-                except ValueError as e:
-                    return "Failed", str(e)
+                with requests.Session() as session:
+                    retries = Retry(
+                        total=10,
+                        backoff_factor=0.1,
+                        status_forcelist=[ 500, 502, 503, 504 ]
+                    )
+
+                    session.mount("https://", HTTPAdapter(max_retries=retries))
+                    session.mount("http://", HTTPAdapter(max_retries=retries))
+
+                    try:
+                        youtube_url = cls.get_youtube_url(query, session)
+
+                    except ValueError as e:
+                        return "Failed", str(e)
 
                 if youtube_url:
                     logger.info(f"Downloading: {metadata['title']} - {metadata['artist']}")

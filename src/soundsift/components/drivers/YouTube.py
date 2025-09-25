@@ -5,6 +5,7 @@ import yt_dlp
 import logging
 import shutil
 import requests
+from requests.adapters import HTTPAdapter, Retry
 from soundsift.components.drivers.metadata_mp3 import MetadataMP3
 
 logger = logging.getLogger(__name__)
@@ -19,20 +20,31 @@ class Ytube:
         """Download thumbnail image."""
         if not thumbnail_url:
             return
-        try:
-            response = requests.get(thumbnail_url, stream=True, timeout=10)
-            response.raise_for_status()
-            thumbnail_path = os.path.join(output_path, f"{filename}.jpg")
-            with open(thumbnail_path, "wb") as f:
-                for chunk in response.iter_content(1024):
-                    f.write(chunk)
-            logger.info(f"Thumbnail downloaded to {thumbnail_path}")
-            print(f"Thumbnail downloaded to {thumbnail_path}")
-            return thumbnail_path
-        except requests.RequestException as e:
-            logger.error(f"Error downloading thumbnail: {e}")
-            print(f"Error downloading thumbnail: {e}")
-            return None
+
+        with requests.Session() as session:
+            retries = Retry(
+                total=10,
+                backoff_factor=0.1,
+                status_forcelist=[ 500, 502, 503, 504 ]
+            )
+
+            session.mount("https://", HTTPAdapter(max_retries=retries))
+            session.mount("http://", HTTPAdapter(max_retries=retries))
+
+            try:
+                response = session.get(thumbnail_url, stream=True, timeout=10)
+                response.raise_for_status()
+                thumbnail_path = os.path.join(output_path, f"{filename}.jpg")
+                with open(thumbnail_path, "wb") as f:
+                    for chunk in response.iter_content(1024):
+                        f.write(chunk)
+                logger.info(f"Thumbnail downloaded to {thumbnail_path}")
+                print(f"Thumbnail downloaded to {thumbnail_path}")
+                return thumbnail_path
+            except requests.RequestException as e:
+                logger.error(f"Error downloading thumbnail: {e}")
+                print(f"Error downloading thumbnail: {e}")
+                return None
 
     @classmethod
     def download_audio_yt_dlp(cls, url, output_path, metadata=None, callback=None):
