@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+APP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/soundsift"
+VENV_DIR="$APP_HOME/venv"
+PYTHON_BIN="$VENV_DIR/bin/python"
+APP_PYTHONPATH="/usr/lib/python3/dist-packages"
+
+mkdir -p "$APP_HOME"
+
+if [ ! -x "$PYTHON_BIN" ]; then
+    python3 -m venv "$VENV_DIR"
+    "$VENV_DIR/bin/pip" install --upgrade pip setuptools wheel
+    if [ -f /usr/share/soundsift/requirements.txt ]; then
+        "$VENV_DIR/bin/pip" install -r /usr/share/soundsift/requirements.txt
+    fi
+fi
+
+exec env PYTHONPATH="$APP_PYTHONPATH${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_BIN" -m soundsift.main "$@"

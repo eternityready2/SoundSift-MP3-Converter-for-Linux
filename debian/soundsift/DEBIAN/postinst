@@ -1,26 +1,29 @@
 #!/bin/bash
 echo "Post install script is running now"
-pip install --ignore-installed --break-system-packages \
-    certifi \
-    charset-normalizer \
-    commonmark \
-    customtkinter \
-    darkdetect \
-    et_xmlfile \
-    idna \
-    mutagen \
-    openpyxl \
-    packaging \
-    Pygments \
-    python-dotenv \
-    redis \
-    requests \
-    rich \
-    sentry-sdk \
-    spotify_dl \
-    spotipy \
-    urllib3 \
-    yt-dlp
+mkdir -p /usr/share/soundsift
+cat > /usr/share/soundsift/requirements.txt <<'EOF'
+certifi
+charset-normalizer
+commonmark
+customtkinter
+darkdetect
+et_xmlfile
+idna
+mutagen
+openpyxl
+packaging
+Pygments
+python-dotenv
+redis
+requests
+rich
+sentry-sdk
+spotify_dl
+spotipy
+urllib3
+yt-dlp
+EOF
+chmod 644 /usr/share/soundsift/requirements.txt
 
 echo "Copying .desktop to Desktop folder"
 for userdir in /home/*; do

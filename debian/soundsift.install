@@ -1,2 +1,3 @@
 debian/usr/share/applications/soundsift.desktop usr/share/applications/
 debian/usr/share/icons/hicolor/256x256/apps/soundsift.png usr/share/icons/hicolor/256x256/apps/
+debian/soundsift-launcher usr/bin/

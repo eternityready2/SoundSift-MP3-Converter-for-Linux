@@ -50,7 +50,7 @@ version = {attr = "soundsift._version.__version__"}
 Homepage = "https://github.com/eternityready2/SoundSift-MP3-Converter-for-Linux"
 
 [project.scripts]
-soundsift = "soundsift.main:main"
+soundsift-python = "soundsift.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

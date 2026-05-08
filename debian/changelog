@@ -1,5 +1,5 @@
-soundsift (1.0.45) stable; urgency=low
+soundsift (1.0.46) stable; urgency=low
 
-  * retry http failures
+  * isolate install-time python deps in an app-owned venv
 
- -- sivefunc <sivefunc@tuta.io>  Thu, 25 Sep 2025 15:00:00 +0200
+ -- sivefunc <sivefunc@tuta.io>  Thu, 07 May 2026 15:00:00 +0200
