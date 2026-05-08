@@ -2,7 +2,7 @@
 Type=Application
 Name=SoundSift
 Comment=YouTube and Spotify MP3 Converter
-Exec=/usr/bin/soundsift
+Exec=/usr/bin/soundsift-launcher
 Icon=soundsift
 Terminal=false
 Categories=AudioVideo;Utility;
